@@ -1,0 +1,23 @@
+experiment:
+  rounds: 2
+  discussion_seconds: 60
+  voting_seconds: 20
+  results_pause_seconds: 8      # how long the round-1 tally is shown
+  show_round_results: true
+  min_wait_seconds: [3, 8]      # random waiting-room delay, all conditions
+
+labels: [Player A, Player B, Player C]
+
+# Change only this block to switch condition:
+#   3 humans:        human, human, human
+#   2 humans + 1 AI: human, human, ai
+#   1 human + 2 AI:  human, ai, ai
+participants:
+- type: human
+- type: human
+- type: ai
+
+ai:
+  provider: anthropic           # anthropic | scripted (anthropic falls back to scripted without an API key)
+  model: claude-haiku-5-5
+  reply_timeout_seconds: 8
