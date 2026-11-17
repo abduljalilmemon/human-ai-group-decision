@@ -334,8 +334,8 @@ If time runs short, cut in this order: UI animations, extra blind defences beyon
 
 | Slice | Title | Status |
 |---|---|---|
-| 1 | Scaffold, Docker, config, schema | Not started |
-| 2 | Join and waiting room | Not started |
+| 1 | Scaffold, Docker, config, schema | Done |
+| 2 | Join and waiting room | Done |
 | 3 | Session engine and countdown | Not started |
 | 4 | Real-time chat | Not started |
 | 5 | Voting and results | Not started |

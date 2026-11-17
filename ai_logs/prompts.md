@@ -29,3 +29,22 @@ Finally, list the open decisions (tie-breaking, intermediate feedback after roun
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\CLAUDE.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 1: Scaffold, Docker, config, schema. Before coding, state your assumptions and any ambiguity. Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
 ```
+
+## Prompt 3 - 2026-11-17 21:49
+- Tool: Claude Code (VS Code extension)
+- Model: claude-opus-5-5
+
+```text
+<ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\.claude\settings.json in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+
+<pasted_content id="e4fd">
+Follow CLAUDE.md and PLAN.md. Implement ONLY slice 2: Join and waiting room.
+Before coding, state your assumptions and any ambiguity.
+Mark slice 1 as Done in the PLAN.md progress tracker.
+Build backend/app/protocol.py first, as the only place outbound payloads are built from explicit public fields, then lobby.py, ws.py, routes.py (POST /api/join), and the frontend useSession hook and Waiting view.
+Remember: sessionStorage token, no participant counts in the waiting room, shuffled labels, randomized wait in every condition.
+Run the blind-condition-check skill before finishing.
+Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
+</pasted_content id="e4fd">
+```
