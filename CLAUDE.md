@@ -67,7 +67,10 @@ whether others are human or AI (blind condition).
   human and AI messages.
 - Plain React with small components; logic in hooks (e.g. useSession), not in JSX. No router, no component library.
 - Build the UI polish as its own time-boxed slice (about 30 min) after the core flow works.
-  For that slice the frontend-design skill may be used. This file's rules win on any conflict.
+  For that slice only, the Impeccable design skill may be used (installed locally, telemetry off).
+  PRODUCT.md holds its design context. This file's rules win on any conflict, and the blind condition
+  wins every design trade-off: human and AI messages must look, animate, and arrive identically.
+- UI changes touch only frontend/src/** (and the Tailwind config). No protocol, backend, or test changes.
 
 ## Working style
 - Work in small vertical slices, in the order given in PLAN.md. Implement only what I ask for, then stop and

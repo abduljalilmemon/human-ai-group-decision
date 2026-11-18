@@ -286,3 +286,11 @@ Run the blind-condition-check skill before finishing (replayed payloads must als
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
 </pasted_content id="b502">
 ```
+
+## Prompt 12 - 2026-11-18 22:25
+- Tool: Claude Code (VS Code extension)
+- Model: UNKNOWN - fill in
+
+```text
+/impeccable init
+```
