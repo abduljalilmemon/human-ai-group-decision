@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from . import protocol
-from .lobby import LiveSession
+from .lobby import LiveSession, Seat
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -47,6 +47,11 @@ class ConnectionManager:
             if seat.token:
                 await self.send(seat.token, protocol.state(session, seat))
 
+    async def send_state_to(self, session: LiveSession, seat: Seat) -> None:
+        """Send one player their own state (e.g. to confirm their vote). No-op for AI seats."""
+        if seat.token:
+            await self.send(seat.token, protocol.state(session, seat))
+
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, token: str = ""):
@@ -79,8 +84,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str = ""):
                 reason = "invalid_message"
             elif msg.get("type") == "chat":
                 reason = await engine.submit_chat(session, seat, msg.get("text"))
+            elif msg.get("type") == "vote":
+                reason = await engine.submit_vote(session, seat, msg.get("target"))
             else:
-                reason = "unsupported"  # vote handling arrives in slice 5
+                reason = "unsupported"
             if reason:
                 await websocket.send_json(protocol.error(reason))  # errors go to the sender only
     except WebSocketDisconnect:

@@ -20,6 +20,19 @@ export interface ChatMessage {
   sent_at: number; // epoch ms
 }
 
+export type Tallies = Record<string, number>; // label -> votes; never who voted for whom
+
+export interface RoundResult {
+  round: number;
+  tallies: Tallies;
+}
+
+export interface FinalResult {
+  decision_maker: string;
+  tallies_by_round: Record<string, Tallies>; // keyed "1", "2"
+  tie_break: "none" | "round1" | "random";
+}
+
 export const MAX_CHAT_CHARS = 500; // mirrors the server limit
 
 export type Status = "idle" | "joining" | "connecting" | "connected" | "closed" | "error";
@@ -50,6 +63,8 @@ export function useSession() {
   const [state, setState] = useState<ServerState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [roundResult, setRoundResult] = useState<RoundResult | null>(null);
+  const [finalResult, setFinalResult] = useState<FinalResult | null>(null);
   const socket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -70,6 +85,14 @@ export function useSession() {
       } else if (msg.type === "message") {
         const m: ChatMessage = { id: msg.id, from: msg.from, text: msg.text, sent_at: msg.sent_at };
         setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
+      } else if (msg.type === "round_result") {
+        setRoundResult({ round: msg.round, tallies: msg.tallies });
+      } else if (msg.type === "final_result") {
+        setFinalResult({
+          decision_maker: msg.decision_maker,
+          tallies_by_round: msg.tallies_by_round,
+          tie_break: msg.tie_break,
+        });
       } else if (msg.type === "error" && msg.reason === "unknown_token") {
         // e.g. the server restarted: the old seat is gone, so offer a fresh join.
         writeToken(null);
@@ -115,5 +138,14 @@ export function useSession() {
     return true;
   }, []);
 
-  return { status, state, error, messages, join, sendChat };
+  // The server confirms an accepted vote with a state message where has_voted is true.
+  const sendVote = useCallback((target: string): boolean => {
+    const ws = socket.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    setError(null);
+    ws.send(JSON.stringify({ type: "vote", target }));
+    return true;
+  }, []);
+
+  return { status, state, error, messages, roundResult, finalResult, join, sendChat, sendVote };
 }

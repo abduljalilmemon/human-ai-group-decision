@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import Countdown from "./Countdown";
-import { useSession, type ServerState } from "./useSession";
+import { useSession } from "./useSession";
 import Discussion from "./views/Discussion";
+import { FinalResults, RoundTally } from "./views/Results";
+import Voting from "./views/Voting";
 import Waiting from "./views/Waiting";
 
 function Card({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
@@ -33,47 +34,8 @@ function Join({ onJoin, busy, error }: { onJoin: () => void; busy: boolean; erro
   );
 }
 
-function phaseTitle({ phase, round }: ServerState): string {
-  switch (phase) {
-    case "DISCUSSION":
-      return `Round ${round} · Discussion`;
-    case "VOTING":
-      return `Round ${round} · Vote`;
-    case "ROUND_RESULT":
-      return `Round ${round} · Results`;
-    default:
-      return "Session complete";
-  }
-}
-
-// Shell for the phases without their own view yet. Voting and results views fill it in slice 5.
-function Started({ state }: { state: ServerState }) {
-  return (
-    <div className="text-center">
-      <Countdown
-        remainingMs={state.remaining_ms}
-        serverNow={state.server_now}
-        phaseKey={`${state.phase}-${state.round}`}
-      />
-      <h1 className="mt-4 text-2xl font-semibold">
-        {phaseTitle(state)}
-      </h1>
-      <p className="mt-2 text-slate-500">
-        You are <span className="font-semibold text-indigo-600">{state.you}</span>.
-      </p>
-      <ul className="mt-6 flex justify-center gap-2">
-        {state.players.map((p) => (
-          <li key={p} className="rounded-full bg-slate-100 px-3 py-1 text-sm">
-            {p}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export default function App() {
-  const { status, state, error, messages, join, sendChat } = useSession();
+  const { status, state, error, messages, roundResult, finalResult, join, sendChat, sendVote } = useSession();
 
   if (status === "idle" || status === "joining" || (status === "error" && !state)) {
     return (
@@ -96,12 +58,36 @@ export default function App() {
       </Card>
     );
   }
-  if (state.phase === "DISCUSSION") {
-    return (
-      <Card wide>
-        <Discussion state={state} messages={messages} error={error} onSend={sendChat} />
-      </Card>
-    );
+  switch (state.phase) {
+    case "WAITING":
+      return (
+        <Card>
+          <Waiting />
+        </Card>
+      );
+    case "DISCUSSION":
+      return (
+        <Card wide>
+          <Discussion state={state} messages={messages} error={error} onSend={sendChat} />
+        </Card>
+      );
+    case "VOTING":
+      return (
+        <Card wide>
+          <Voting key={state.round} state={state} error={error} onVote={sendVote} />
+        </Card>
+      );
+    case "ROUND_RESULT":
+      return (
+        <Card>
+          <RoundTally state={state} result={roundResult} />
+        </Card>
+      );
+    case "FINAL":
+      return (
+        <Card>
+          <FinalResults state={state} result={finalResult} />
+        </Card>
+      );
   }
-  return <Card>{state.phase === "WAITING" ? <Waiting /> : <Started state={state} />}</Card>;
 }

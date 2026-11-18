@@ -37,7 +37,21 @@ def state(session: "LiveSession", seat: "Seat", server_now: int | None = None) -
         # about who or how many have joined.
         "you": seat.label if started else None,
         "players": sorted(s.label for s in session.seats) if started else [],
-        "has_voted": False,  # voting arrives in slice 5
+        "has_voted": session.has_voted(seat.label),  # own ballot only, never anyone else's
+    }
+
+
+def round_result(round_: int, tallies: dict[str, int]) -> Payload:
+    """Anonymous tally: counts per label, never who voted for whom."""
+    return {"type": "round_result", "round": round_, "tallies": dict(tallies)}
+
+
+def final_result(decision_maker: str, tallies_by_round: dict[int, dict[str, int]], tie_break: str) -> Payload:
+    return {
+        "type": "final_result",
+        "decision_maker": decision_maker,
+        "tallies_by_round": {str(r): dict(t) for r, t in sorted(tallies_by_round.items())},
+        "tie_break": tie_break,
     }
 
 

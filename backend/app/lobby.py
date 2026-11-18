@@ -32,6 +32,12 @@ class LiveSession:
     phase: str = "WAITING"
     round: int = 0
     phase_ends_at: int | None = None  # epoch ms; None while waiting
+    # round -> voter label -> target label (None = abstained). Secret: never sent to clients.
+    ballots: dict[int, dict[str, str | None]] = field(default_factory=dict)
+    phase_over: asyncio.Event = field(default_factory=asyncio.Event)  # set to end a phase early
+
+    def has_voted(self, label: str) -> bool:
+        return self.ballots.get(self.round, {}).get(label) is not None
 
     @property
     def humans_full(self) -> bool:

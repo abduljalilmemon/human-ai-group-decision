@@ -48,6 +48,9 @@ def all_payloads():
     yield protocol.join_response(TOKENS["Player A"]), TOKENS["Player A"]
     yield protocol.error("unsupported"), None
     yield protocol.message(1, "Player C", "hi there", 1_990_000), None
+    tallies = {"Player A": 1, "Player B": 0, "Player C": 2}
+    yield protocol.round_result(1, tallies), None
+    yield protocol.final_result("Player C", {1: tallies, 2: tallies}, "none"), None
     for phase in ("WAITING", "DISCUSSION", "VOTING", "ROUND_RESULT", "FINAL"):
         session = make_session(phase)
         for seat in session.seats:
@@ -69,6 +72,20 @@ def test_state_timing_fields():
     final = make_session("FINAL")
     final.phase_ends_at = None
     assert protocol.state(final, final.seats[0])["remaining_ms"] is None
+
+
+def test_state_has_voted_is_own_ballot_only():
+    s = make_session("VOTING")
+    s.ballots[1] = {"Player A": "Player C"}
+    by_label = {seat.label: protocol.state(s, seat)["has_voted"] for seat in s.seats}
+    assert by_label == {"Player A": True, "Player B": False, "Player C": False}
+
+
+def test_results_never_name_voters():
+    payload = protocol.round_result(1, {"Player A": 2, "Player B": 1, "Player C": 0})
+    assert set(payload) == {"type", "round", "tallies"}
+    final = protocol.final_result("Player A", {1: {"Player A": 2}}, "none")
+    assert set(final) == {"type", "decision_maker", "tallies_by_round", "tie_break"}
 
 
 def test_waiting_state_reveals_no_seats():
