@@ -265,3 +265,24 @@ Note (slice 6 extension, Gemini provider): the current Gemini docs (aistudio.goo
 interactions-overview, models, thinking) were read through Claude Code's web-fetch subagent. They recommend the
 Interactions API for new projects, and the parameter names, async client, error classes and key lookup were checked
 against the installed `google-genai==3.5.0`. Skill used: `blind-condition-check`. Model: claude-opus-5-5.
+
+## Prompt 11 - 2026-11-18 20:47
+- Tool: Claude Code (VS Code extension)
+- Model: UNKNOWN - fill in
+
+```text
+<ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\config.yml in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+
+<pasted_content id="b502">
+Follow CLAUDE.md and PLAN.md. Implement ONLY slice 7: Reconnect and disconnects.
+Before coding, state your assumptions and any ambiguity.
+Mark slice 6 as Done in the PLAN.md progress tracker.
+Backend: when a client reconnects with the same token, replay through protocol.py the current state (phase, round, remaining_ms, has_voted), the chat so far, and any round_result or final_result already shown. A disconnected human must not stop the session; their missing votes count as abstentions. A human who disconnects while still in the waiting room releases their seat after a short grace period (a refresh must not lose the seat), so closed tabs do not block later joiners. If a newer connection replaces an older one for the same token, tell the older tab with a clear message instead of failing silently.
+Frontend: automatic reconnect with backoff using the stored sessionStorage token, a visible reconnecting banner, an unknown token sends the user back to the Join screen, and the older replaced tab shows an "opened in another tab" notice.
+Add backend tests for replay (all phases), seat release with grace period (including a refresh within the grace period), and abstention on disconnect.
+For verification, temporarily use short durations in config.yml and restore the file afterwards.
+Run the blind-condition-check skill before finishing (replayed payloads must also come only from protocol.py).
+Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
+</pasted_content id="b502">
+```

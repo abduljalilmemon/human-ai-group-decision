@@ -9,7 +9,7 @@ from app.agents.base import (
     MAX_AGENT_CHARS, MAX_REPLY_SECONDS, MIN_REPLY_SECONDS, clean_reply, has_tell, reply_delay, vote_delay,
 )
 from app.engine import DISCUSSION, submit_chat
-from app.lobby import LiveSession, Seat
+from app.lobby import ChatRecord, LiveSession, Seat
 
 BANNED_KEYS = {
     "kind", "type_of", "participant_type", "is_ai", "is_human", "human", "ai", "bot", "agent", "model",
@@ -52,6 +52,13 @@ def every_payload():
         session = make_session(phase)
         for seat in session.seats:  # including the view an AI seat would get
             yield f"state/{phase}/{seat.kind}", protocol.state(session, seat, server_now=1_990_000)
+    # The reconnect replay, with chat from both kinds of seat, a shown tally and a final result.
+    session = make_session("FINAL")
+    session.chat = [ChatRecord(1, "Player C", "hi", 1), ChatRecord(2, "Player A", "hey", 2)]
+    session.shown_tallies = {1: tallies}
+    session.final = ("Player A", {1: tallies, 2: tallies}, "round1")
+    for i, payload in enumerate(protocol.replay(session, session.seats[0], server_now=1_990_000)):
+        yield f"replay/{i}/{payload['type']}", payload
 
 
 @pytest.mark.parametrize("name, payload", list(every_payload()))

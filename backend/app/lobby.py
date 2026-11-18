@@ -23,6 +23,15 @@ class Seat:
     token: str | None = None  # None for AI seats
 
 
+@dataclass(frozen=True)
+class ChatRecord:
+    """A chat line already broadcast, kept so a reconnecting client can be replayed the history."""
+    id: int
+    label: str
+    text: str
+    sent_at: int  # epoch ms
+
+
 @dataclass
 class LiveSession:
     id: int
@@ -35,6 +44,15 @@ class LiveSession:
     # round -> voter label -> target label (None = abstained). Secret: never sent to clients.
     ballots: dict[int, dict[str, str | None]] = field(default_factory=dict)
     phase_over: asyncio.Event = field(default_factory=asyncio.Event)  # set to end a phase early
+    # What clients have already been shown, for replay on reconnect (see protocol.replay).
+    chat: list[ChatRecord] = field(default_factory=list)
+    shown_tallies: dict[int, dict[str, int]] = field(default_factory=dict)  # round -> anonymous tally
+    final: tuple[str, dict[int, dict[str, int]], str] | None = None  # (winner, tallies_by_round, tie_break)
+
+    def free_labels(self) -> list[str]:
+        """Unseated labels in shuffled order. A released waiting-room seat can leave a gap anywhere."""
+        taken = {s.label for s in self.seats}
+        return [label for label in self.labels if label not in taken]
 
     def has_voted(self, label: str) -> bool:
         return self.ballots.get(self.round, {}).get(label) is not None
@@ -46,6 +64,9 @@ class LiveSession:
 
 OnStart = Callable[[LiveSession], Awaitable[None]]
 
+# A human who leaves the open waiting room keeps their seat this long, so a refresh does not lose it.
+RELEASE_GRACE_SECONDS = 10.0
+
 
 class Lobby:
     def __init__(
@@ -54,18 +75,52 @@ class Lobby:
         db: async_sessionmaker[AsyncSession],
         on_start: OnStart,
         rng: random.Random | None = None,
+        grace_seconds: float = RELEASE_GRACE_SECONDS,
     ):
         self._settings = settings
+        self._grace = grace_seconds
         self._db = db
         self._on_start = on_start
         self._rng = rng or random.Random()
         self._lock = asyncio.Lock()  # serialises joins so two callers never take the same seat
         self._open: LiveSession | None = None
         self._by_token: dict[str, tuple[LiveSession, Seat]] = {}
+        self._sockets: dict[str, int] = {}  # token -> number of open WebSockets
         self._tasks: set[asyncio.Task] = set()
 
     def find(self, token: str) -> tuple[LiveSession, Seat] | None:
         return self._by_token.get(token)
+
+    def connected(self, token: str) -> None:
+        self._sockets[token] = self._sockets.get(token, 0) + 1
+
+    def disconnected(self, token: str) -> None:
+        """Called when a socket closes. Only an open waiting room releases seats; after that a
+        missing human simply abstains, so a session never stalls or loses a seat once it is starting."""
+        count = self._sockets.get(token, 0) - 1
+        if count > 0:
+            self._sockets[token] = count
+            return
+        self._sockets.pop(token, None)
+        found = self._by_token.get(token)
+        if found is not None and found[0] is self._open:
+            self._spawn(self._release_after_grace(token))
+
+    async def _release_after_grace(self, token: str) -> None:
+        await asyncio.sleep(self._grace)
+        async with self._lock:  # same lock as join, so a release never races a seat assignment
+            found = self._by_token.get(token)
+            if found is None or self._sockets.get(token) or found[0] is not self._open:
+                return  # reconnected (e.g. a refresh), or the session filled up meanwhile
+            session, seat = found
+            del self._by_token[token]  # from here on the token is unknown to the WebSocket endpoint
+            session.seats.remove(seat)
+            async with self._db() as db:
+                row = await db.get(Participant, seat.participant_id)
+                if row is not None:
+                    await db.delete(row)
+                db.add(Event(session_id=session.id, type="seat_released", payload={"label": seat.label}))
+                await db.commit()
 
     async def join(self) -> str:
         """Seat a new human in the open session (opening one if needed) and return their token."""
@@ -73,7 +128,7 @@ class Lobby:
             if self._open is None:
                 self._open = await self._create_session()
             session = self._open
-            label = session.labels[len(session.seats)]
+            label = session.free_labels()[0]
             token = secrets.token_urlsafe(32)
             async with self._db() as db:
                 row = Participant(session_id=session.id, label=label, kind="human", token=token)
@@ -113,7 +168,7 @@ class Lobby:
         async with self._db() as db:
             ai_rows = [
                 Participant(session_id=session.id, label=label, kind="ai", token=None)
-                for label in session.labels[len(session.seats):]
+                for label in session.free_labels()
             ]
             db.add_all(ai_rows)
             await db.flush()
@@ -134,4 +189,4 @@ class Lobby:
     def _task_done(self, task: asyncio.Task) -> None:
         self._tasks.discard(task)
         if not task.cancelled() and task.exception():
-            log.error("Session start failed", exc_info=task.exception())
+            log.error("Lobby task failed", exc_info=task.exception())

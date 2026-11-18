@@ -17,7 +17,7 @@ from .config import Experiment
 from . import protocol, voting
 from .agents import AgentFactory
 from .agents.base import AgentSeat, SessionAgents
-from .lobby import LiveSession, Seat
+from .lobby import ChatRecord, LiveSession, Seat
 from .models import Event, ExperimentSession, Message, Vote
 from .protocol import Payload, now_ms
 
@@ -123,6 +123,7 @@ async def submit_chat(
         return reason
     round_, sent_at = session.round, clock()  # read before any await so a phase change cannot shift them
     message_id = await save(session.id, seat.participant_id, round_, clean, sent_at)
+    session.chat.append(ChatRecord(message_id, seat.label, clean, sent_at))  # for replay on reconnect
     await send_all(session, protocol.message(message_id, seat.label, clean, sent_at))
     return None
 
@@ -174,12 +175,14 @@ async def close_voting(
     tallies = {r: voting.tally(b.values(), labels) for r, b in sorted(session.ballots.items())}
     if round_ < exp.rounds:
         if exp.show_round_results:
+            session.shown_tallies[round_] = tallies[round_]
             await send_all(session, protocol.round_result(round_, tallies[round_]))
         return
     earlier = tallies.get(round_ - 1, voting.tally([], labels))
     winner, tie_break = voting.decide_winner(tallies[round_], earlier, rng)
     ids = {s.label: s.participant_id for s in session.seats}
     await save_decision(session.id, ids[winner], tie_break, tallies)
+    session.final = (winner, tallies, tie_break)
     await send_all(session, protocol.final_result(winner, tallies, tie_break))
 
 

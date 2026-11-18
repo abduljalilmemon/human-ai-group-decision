@@ -62,3 +62,14 @@ def message(message_id: int, from_label: str, text: str, sent_at: int) -> Payloa
 
 def error(reason: str) -> Payload:
     return {"type": "error", "reason": reason}
+
+
+def replay(session: "LiveSession", seat: "Seat", server_now: int | None = None) -> list[Payload]:
+    """Everything a (re)connecting client needs, in order: its own state, the chat so far, then any
+    round tally and final result already shown. Built only from the builders above."""
+    payloads = [state(session, seat, server_now)]
+    payloads += [message(m.id, m.label, m.text, m.sent_at) for m in session.chat]
+    payloads += [round_result(r, t) for r, t in sorted(session.shown_tallies.items())]
+    if session.final is not None:
+        payloads.append(final_result(*session.final))
+    return payloads

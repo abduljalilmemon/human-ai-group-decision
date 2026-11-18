@@ -35,7 +35,14 @@ export interface FinalResult {
 
 export const MAX_CHAT_CHARS = 500; // mirrors the server limit
 
-export type Status = "idle" | "joining" | "connecting" | "connected" | "closed" | "error";
+// reconnecting: the socket dropped and a retry is scheduled. replaced: this token was opened in
+// another tab, which now owns the seat.
+export type Status = "idle" | "joining" | "connecting" | "connected" | "reconnecting" | "replaced" | "error";
+
+// Server close codes that must not trigger a reconnect (see backend/app/ws.py).
+const CLOSE_UNKNOWN_TOKEN = 4404;
+const CLOSE_REPLACED = 4409;
+const BACKOFF_MS = [500, 1000, 2000, 4000, 8000]; // then 8 s per retry until it works
 
 // sessionStorage, not localStorage: each tab is its own participant, and a refresh keeps the seat.
 const TOKEN_KEY = "playerToken";
@@ -70,47 +77,70 @@ export function useSession() {
   useEffect(() => {
     if (!token) return;
     let disposed = false;
-    setStatus("connecting");
-    const scheme = location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${scheme}://${location.host}/ws?token=${encodeURIComponent(token)}`);
-    socket.current = ws;
+    let attempt = 0;
+    let retry: number | undefined;
+    let stop = false; // set by the server's unknown_token or replaced answer
 
-    ws.onopen = () => !disposed && setStatus("connected");
-    ws.onmessage = (event) => {
-      if (disposed) return;
-      const msg = JSON.parse(event.data);
-      if (msg.type === "state") {
-        setState(msg as ServerState);
-        setError(null); // state arrives on phase changes; an old chat error no longer applies
-      } else if (msg.type === "message") {
-        const m: ChatMessage = { id: msg.id, from: msg.from, text: msg.text, sent_at: msg.sent_at };
-        setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
-      } else if (msg.type === "round_result") {
-        setRoundResult({ round: msg.round, tallies: msg.tallies });
-      } else if (msg.type === "final_result") {
-        setFinalResult({
-          decision_maker: msg.decision_maker,
-          tallies_by_round: msg.tallies_by_round,
-          tie_break: msg.tie_break,
-        });
-      } else if (msg.type === "error" && msg.reason === "unknown_token") {
-        // e.g. the server restarted: the old seat is gone, so offer a fresh join.
-        writeToken(null);
-        setToken(null);
-        setState(null);
-        setStatus("error");
-        setError("Your previous session is no longer available.");
-      } else if (msg.type === "error") {
-        setError(msg.reason);
-      }
+    const connect = () => {
+      const scheme = location.protocol === "https:" ? "wss" : "ws";
+      const ws = new WebSocket(`${scheme}://${location.host}/ws?token=${encodeURIComponent(token)}`);
+      socket.current = ws;
+
+      ws.onmessage = (event) => {
+        if (disposed) return;
+        const msg = JSON.parse(event.data);
+        if (msg.type === "state") {
+          attempt = 0; // the server accepted us and replayed the session
+          setStatus("connected");
+          setState(msg as ServerState);
+          setError(null); // state arrives on phase changes; an old chat error no longer applies
+        } else if (msg.type === "message") {
+          const m: ChatMessage = { id: msg.id, from: msg.from, text: msg.text, sent_at: msg.sent_at };
+          // A reconnect replays the whole chat, so skip lines this tab already has.
+          setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
+        } else if (msg.type === "round_result") {
+          setRoundResult({ round: msg.round, tallies: msg.tallies });
+        } else if (msg.type === "final_result") {
+          setFinalResult({
+            decision_maker: msg.decision_maker,
+            tallies_by_round: msg.tallies_by_round,
+            tie_break: msg.tie_break,
+          });
+        } else if (msg.type === "error" && msg.reason === "unknown_token") {
+          // The seat is gone (server restart, or released after leaving the waiting room): join again.
+          stop = true;
+          writeToken(null);
+          setToken(null);
+          setState(null);
+          setMessages([]);
+          setRoundResult(null);
+          setFinalResult(null);
+          setStatus("error");
+          setError("Your previous session is no longer available.");
+        } else if (msg.type === "error" && msg.reason === "replaced") {
+          stop = true;
+          setStatus("replaced");
+        } else if (msg.type === "error") {
+          setError(msg.reason);
+        }
+      };
+      ws.onclose = (event) => {
+        if (socket.current === ws) socket.current = null;
+        if (disposed || stop) return;
+        if (event.code === CLOSE_UNKNOWN_TOKEN || event.code === CLOSE_REPLACED) return;
+        setStatus("reconnecting");
+        retry = window.setTimeout(connect, BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)]);
+        attempt += 1;
+      };
     };
-    ws.onclose = () => {
-      if (!disposed) setStatus((s) => (s === "error" ? s : "closed"));
-    };
+
+    setStatus("connecting");
+    connect();
     return () => {
       disposed = true;
-      if (socket.current === ws) socket.current = null;
-      ws.close();
+      window.clearTimeout(retry);
+      socket.current?.close();
+      socket.current = null;
     };
   }, [token]);
 
