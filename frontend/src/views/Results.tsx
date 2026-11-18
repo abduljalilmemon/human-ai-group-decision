@@ -1,17 +1,21 @@
-import Countdown from "../Countdown";
 import type { FinalResult, RoundResult, ServerState, Tallies } from "../useSession";
-import { Avatar, Spinner } from "../ui";
+import { Avatar, PhaseHeader, Spinner } from "../ui";
+
+// The suspense beat is motion only: all results are in the DOM (and read by screen readers) at once;
+// the visual reveal waits at most BEAT_MS, and reduced motion removes the wait entirely.
+const BEAT_MS = 600;
 
 // Counts per label only: the server never sends who voted for whom.
-function TallyBars({ tallies, players, you, highlight }: {
+function TallyBars({ tallies, players, you, highlight, delayMs = 0 }: {
   tallies: Tallies;
   players: string[];
   you: string | null;
   highlight?: string;
+  delayMs?: number;
 }) {
   const max = Math.max(1, ...Object.values(tallies));
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-3.5">
       {players.map((label, i) => {
         const count = tallies[label] ?? 0;
         const win = label === highlight;
@@ -28,10 +32,10 @@ function TallyBars({ tallies, players, you, highlight }: {
                   {count} {count === 1 ? "vote" : "votes"}
                 </span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-track">
+              <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-track">
                 <div
                   className={`h-full origin-left animate-grow rounded-full ${win ? "bg-accent" : "bg-muted/55"}`}
-                  style={{ width: `${(count / max) * 100}%`, animationDelay: `${i * 80}ms` }}
+                  style={{ width: `${(count / max) * 100}%`, animationDelay: `${delayMs + i * 90}ms` }}
                 />
               </div>
             </div>
@@ -44,7 +48,7 @@ function TallyBars({ tallies, players, you, highlight }: {
 
 function Counting() {
   return (
-    <p className="flex items-center justify-center gap-2 py-6 text-sm text-muted">
+    <p className="flex items-center justify-center gap-2 py-8 text-sm text-muted">
       <Spinner /> Counting votes…
     </p>
   );
@@ -53,14 +57,14 @@ function Counting() {
 export function RoundTally({ state, result }: { state: ServerState; result: RoundResult | null }) {
   return (
     <div>
-      <Countdown remainingMs={state.remaining_ms} serverNow={state.server_now} phaseKey={`${state.phase}-${state.round}`} />
-      <h1 className="mt-4 text-xl font-semibold text-balance">Round {state.round} results</h1>
-      <p className="mt-1.5 text-sm text-muted">
-        A straw poll. Round {state.round + 1} starts shortly; its vote decides the Decision Maker.
-      </p>
-      <div className="mt-6">
+      <PhaseHeader
+        state={state}
+        title={`Round ${state.round} results`}
+        hint={`A straw poll. Round ${state.round + 1} starts shortly; its vote decides the Decision Maker.`}
+      />
+      <div className="mt-7">
         {result && result.round === state.round ? (
-          <TallyBars tallies={result.tallies} players={state.players} you={state.you} />
+          <TallyBars tallies={result.tallies} players={state.players} you={state.you} delayMs={BEAT_MS / 2} />
         ) : (
           <Counting />
         )}
@@ -79,23 +83,36 @@ export function FinalResults({ state, result }: { state: ServerState; result: Fi
   if (!result) return <Counting />;
   const tieNote = TIE_BREAK_TEXT[result.tie_break];
   const rounds = Object.keys(result.tallies_by_round).sort();
+  const at = (ms: number) => ({ animationDelay: `${BEAT_MS + ms}ms` });
   return (
     <div>
-      <div className="flex flex-col items-center text-center">
-        <span className="animate-reveal rounded-full">
-          <span className="block animate-halo rounded-full">
-            <Avatar label={result.decision_maker} size="lg" />
+      {/* The counting line and the winner share one grid cell: one fades out as the other reveals. */}
+      <div className="grid place-items-center text-center *:[grid-area:1/1]">
+        <p aria-hidden className="flex animate-fade-out items-center gap-2 self-start pt-8 text-sm text-muted" style={{ animationDelay: `${BEAT_MS}ms` }}>
+          <Spinner /> Counting votes…
+        </p>
+        <div className="flex flex-col items-center">
+          <span className="animate-reveal rounded-full" style={at(0)}>
+            <span className="block animate-halo rounded-full" style={at(350)}>
+              <Avatar label={result.decision_maker} size="xl" />
+            </span>
           </span>
-        </span>
-        <h1 className="mt-5 animate-enter text-2xl font-semibold text-balance [animation-delay:250ms]">
-          {result.decision_maker} is the Decision Maker
-        </h1>
-        {result.decision_maker === state.you && (
-          <p className="mt-1.5 animate-enter text-sm font-medium text-accent [animation-delay:350ms]">That's you.</p>
-        )}
-        {tieNote && <p className="mt-2 animate-enter text-sm text-muted [animation-delay:350ms]">{tieNote}</p>}
+          <h1 className="mt-6 animate-enter text-3xl font-semibold tracking-tight text-balance" style={at(250)}>
+            {result.decision_maker} is the Decision Maker
+          </h1>
+          {result.decision_maker === state.you && (
+            <p className="mt-2 animate-enter text-sm font-medium text-accent" style={at(400)}>
+              That's you.
+            </p>
+          )}
+          {tieNote && (
+            <p className="mt-2 animate-enter text-sm text-muted" style={at(400)}>
+              {tieNote}
+            </p>
+          )}
+        </div>
       </div>
-      <div className="mt-8 animate-fade space-y-6 border-t border-line pt-6 [animation-delay:500ms]">
+      <div className="mt-9 animate-enter space-y-6 border-t border-line pt-6" style={at(500)}>
         {rounds.map((r) => (
           <section key={r}>
             <h2 className="mb-3 text-sm font-semibold text-ink">Round {r}</h2>
@@ -104,6 +121,7 @@ export function FinalResults({ state, result }: { state: ServerState; result: Fi
               players={state.players}
               you={state.you}
               highlight={r === rounds[rounds.length - 1] ? result.decision_maker : undefined}
+              delayMs={BEAT_MS + 600}
             />
           </section>
         ))}

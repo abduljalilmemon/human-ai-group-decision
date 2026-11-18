@@ -2,12 +2,12 @@
 
 /* Design tokens. One accent (indigo). Player tints are keyed by label letter only, never by kind. */
 @theme {
-  --color-canvas: oklch(97.4% 0.006 255);
+  --color-canvas: oklch(97.2% 0.007 260);
   --color-surface: oklch(100% 0 0);
-  --color-ink: oklch(26% 0.025 262);
+  --color-ink: oklch(25% 0.03 264);
   --color-muted: oklch(47% 0.025 262); /* >= 4.5:1 on surface and canvas */
-  --color-line: oklch(91% 0.01 262);
-  --color-track: oklch(94% 0.008 262);
+  --color-line: oklch(91% 0.012 262);
+  --color-track: oklch(94% 0.01 262);
 
   --color-accent: oklch(49% 0.2 272);
   --color-accent-hover: oklch(43% 0.2 272);
@@ -27,36 +27,53 @@
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --animate-enter: enter 280ms var(--ease-out-expo) both;
-  --animate-fade: fade 400ms var(--ease-out-expo) both;
-  --animate-grow: grow 700ms var(--ease-out-expo) both;
-  --animate-breathe: breathe 2.4s ease-in-out infinite;
+  --animate-enter: enter 320ms var(--ease-out-expo) both;
+  --animate-fade-out: fade-out 250ms ease-out both;
+  --animate-grow: grow 900ms var(--ease-out-expo) both;
+  --animate-pop: pop 420ms var(--ease-out-expo) both;
+  --animate-draw: draw 360ms var(--ease-out-expo) 120ms both;
   --animate-reveal: reveal 900ms var(--ease-out-expo) both;
-  --animate-halo: halo 1.4s var(--ease-out-expo) 500ms both;
+  --animate-halo: halo 1.6s var(--ease-out-expo) both;
+  --animate-orbit: spin 14s linear infinite;
+  --animate-breathe: breathe 4s ease-in-out infinite;
+  --animate-drift: drift 28s ease-in-out infinite alternate;
 
   @keyframes enter {
-    from { opacity: 0; transform: translateY(6px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: none; }
   }
-  @keyframes fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
   }
   @keyframes grow {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
   }
-  @keyframes breathe {
-    0%, 100% { transform: scale(0.85); opacity: 0.35; }
-    50% { transform: scale(1.15); opacity: 0.1; }
+  @keyframes pop {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: 16; }
+    to { stroke-dashoffset: 0; }
   }
   @keyframes reveal {
-    from { opacity: 0; transform: scale(0.8); filter: blur(8px); }
+    from { opacity: 0; transform: scale(0.7); filter: blur(10px); }
     to { opacity: 1; transform: none; filter: none; }
   }
   @keyframes halo {
-    from { box-shadow: 0 0 0 0 oklch(49% 0.2 272 / 0.35); }
-    to { box-shadow: 0 0 0 28px oklch(49% 0.2 272 / 0); }
+    from { box-shadow: 0 0 0 0 oklch(49% 0.2 272 / 0.4); }
+    to { box-shadow: 0 0 0 36px oklch(49% 0.2 272 / 0); }
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(0.92); opacity: 0.55; }
+    50% { transform: scale(1.06); opacity: 1; }
+  }
+  @keyframes drift {
+    from { transform: translate3d(-3%, -2%, 0) rotate(0deg); }
+    to { transform: translate3d(3%, 2%, 0) rotate(8deg); }
   }
 }
 
@@ -65,6 +82,7 @@
     background: var(--color-canvas);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   ::selection {
     background: var(--color-accent-soft);
@@ -84,7 +102,42 @@
   }
 }
 
-/* One switch for every animation and transition in the app. */
+@layer components {
+  /* Two soft light fields that drift slowly, over a faint dot grid. Transform-only, so it stays on the compositor. */
+  .backdrop-fields {
+    position: absolute;
+    inset: -20%;
+    background:
+      radial-gradient(38% 32% at 22% 18%, oklch(91% 0.035 265 / 0.6), transparent 70%),
+      radial-gradient(34% 30% at 82% 78%, oklch(93% 0.025 75 / 0.7), transparent 70%);
+    will-change: transform;
+  }
+  .backdrop-dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(oklch(47% 0.025 262 / 0.14) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(70% 60% at 50% 35%, black, transparent);
+  }
+  /* The panel: layered offset shadows plus a hairline top highlight. */
+  .panel {
+    background: var(--color-surface);
+    border-radius: 1.75rem;
+    box-shadow:
+      inset 0 1px 0 oklch(100% 0 0),
+      0 0 0 1px oklch(25% 0.03 264 / 0.07),
+      0 2px 4px oklch(25% 0.03 264 / 0.04),
+      0 12px 24px -8px oklch(25% 0.03 264 / 0.08),
+      0 32px 64px -24px oklch(35% 0.12 272 / 0.18);
+  }
+  /* Waiting room ring: a slowly turning accent arc. Shows nothing countable. */
+  .orbit-ring {
+    background: conic-gradient(from 0deg, transparent 0deg, oklch(49% 0.2 272 / 0.08) 90deg, oklch(49% 0.2 272 / 0.85) 300deg, transparent 360deg);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), black calc(100% - 2px));
+  }
+}
+
+/* One switch for every CSS animation and transition in the app; motion's MotionConfig handles its own. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
