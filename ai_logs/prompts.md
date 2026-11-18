@@ -91,7 +91,7 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 
 ## Prompt 6 - 2026-11-18 14:58
 - Tool: Claude Code (VS Code extension)
-- Model: UNKNOWN - fill in
+- Model: claude-opus-5-5
 
 ```text
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\config.yml in the IDE. This may or may not be related to the current task.</ide_opened_file>
@@ -114,7 +114,7 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 
 ## Prompt 7 - 2026-11-18 19:03
 - Tool: Claude Code (VS Code extension)
-- Model: UNKNOWN - fill in
+- Model: claude-opus-5-5
 
 ```text
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\ai_logs\prompts.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
@@ -268,7 +268,7 @@ against the installed `google-genai==3.5.0`. Skill used: `blind-condition-check`
 
 ## Prompt 11 - 2026-11-18 20:47
 - Tool: Claude Code (VS Code extension)
-- Model: UNKNOWN - fill in
+- Model: claude-opus-5-5
 
 ```text
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\config.yml in the IDE. This may or may not be related to the current task.</ide_opened_file>
@@ -289,8 +289,29 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 
 ## Prompt 12 - 2026-11-18 22:25
 - Tool: Claude Code (VS Code extension)
-- Model: UNKNOWN - fill in
+- Model: claude-opus-5-5
 
 ```text
 /impeccable init
+```
+
+## Prompt 13 - 2026-11-18 22:33
+- Tool: Claude Code (VS Code extension)
+- Model: UNKNOWN - fill in
+
+```text
+<ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\ai_logs\prompts.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+
+<pasted_content id="6845">
+Re-read CLAUDE.md and PRODUCT.md first.
+Follow CLAUDE.md and PLAN.md. Implement ONLY slice 8: UI polish. Use the installed Impeccable design skill for visual direction; CLAUDE.md rules win on any conflict, and the blind condition wins every design trade-off.
+Before coding, state your assumptions and your design direction in a few lines (palette with one accent color, typography, spacing, motion).
+Mark slice 7 as Done in the PLAN.md progress tracker.
+Touch only frontend/src/** (and the Tailwind config if needed). Do not change the WebSocket protocol, the backend, or the tests. No new libraries unless clearly justified; use Tailwind and CSS transitions/keyframes.
+Screens and states to cover: Join, Waiting room (no counts or progress), Discussion (chat bubbles, input, smooth countdown bar driven by remaining_ms), Voting (large clear vote cards with hover, press and selected states), Round 1 tally, Final results (winner reveal), the Reconnecting banner, the "Opened in another tab" notice, "session no longer available", and error lines.
+Rules: every message renders identically for every sender except your own (own messages on the right). Player colors are assigned by label only. No typing indicators and no special styling or timing for AI messages. Respect prefers-reduced-motion. Keep contrast accessible (WCAG 2.2 AA), add visible focus states, full keyboard operation, and aria-live for new chat messages without announcing the countdown every second. Layout must work at desktop and mobile widths, with desktop as the main target.
+Run the Impeccable checks (detector and any critique/audit step) and fix what they flag. Run the blind-condition-check skill before finishing (item 7 applies fully). Make sure the frontend still builds and type-checks.
+Time-box: keep it simple and finish in one pass. Do not start other slices. Show me how to verify. Stop when done.
+</pasted_content id="6845">
 ```
