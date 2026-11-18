@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Countdown from "./Countdown";
 import { useSession, type ServerState } from "./useSession";
 import Waiting from "./views/Waiting";
 
@@ -31,11 +32,31 @@ function Join({ onJoin, busy, error }: { onJoin: () => void; busy: boolean; erro
   );
 }
 
-// Placeholder until the session engine and discussion view arrive (slices 3 and 4).
+function phaseTitle({ phase, round }: ServerState): string {
+  switch (phase) {
+    case "DISCUSSION":
+      return `Round ${round} · Discussion`;
+    case "VOTING":
+      return `Round ${round} · Vote`;
+    case "ROUND_RESULT":
+      return `Round ${round} · Results`;
+    default:
+      return "Session complete";
+  }
+}
+
+// Shell for every running phase. Chat, voting and results views fill it in slices 4 and 5.
 function Started({ state }: { state: ServerState }) {
   return (
     <div className="text-center">
-      <h1 className="text-2xl font-semibold">Session started</h1>
+      <Countdown
+        remainingMs={state.remaining_ms}
+        serverNow={state.server_now}
+        phaseKey={`${state.phase}-${state.round}`}
+      />
+      <h1 className="mt-4 text-2xl font-semibold">
+        {phaseTitle(state)}
+      </h1>
       <p className="mt-2 text-slate-500">
         You are <span className="font-semibold text-indigo-600">{state.you}</span>.
       </p>

@@ -48,3 +48,23 @@ Run the blind-condition-check skill before finishing.
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
 </pasted_content id="e4fd">
 ```
+
+## Prompt 4 - 2026-11-18 01:04
+- Tool: Claude Code (VS Code extension)
+- Model: UNKNOWN - fill in
+
+```text
+<ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\PLAN.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+
+<pasted_content id="9c90">
+Follow CLAUDE.md and PLAN.md. Implement ONLY slice 3: Session engine and countdown.
+Before coding, state your assumptions and any ambiguity.
+Mark slice 2 as Done in the PLAN.md progress tracker.
+Build backend/app/engine.py: one asyncio task per session walking WAITING -> DISCUSSION (round 1) -> VOTING (round 1) -> ROUND_RESULT -> DISCUSSION (round 2) -> VOTING (round 2) -> FINAL, sleeping until each deadline. Keep transition logic testable (pure functions for "next phase and duration"). Save one row per phase change to the events table and broadcast state through protocol.py with phase, round, phase_ends_at, server_now and remaining_ms. Add the frontend countdown component driven by remaining_ms.
+Add backend/tests/test_engine.py for the transitions, and backend/tests/test_protocol.py asserting that no protocol builder output contains kind or another player's token.
+For verification, temporarily use short durations in config.yml (for example 10 and 5 seconds) and restore the file afterwards.
+Run the blind-condition-check skill before finishing.
+Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
+</pasted_content id="9c90">
+```

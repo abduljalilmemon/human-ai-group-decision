@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .config import Config
 from .models import Event, ExperimentSession, Participant
-from .protocol import now_ms
 
 log = logging.getLogger(__name__)
 
@@ -119,12 +118,7 @@ class Lobby:
             db.add(Event(session_id=session.id, type="session_started", payload={"seats": seats}))
             await db.commit()
         session.seats += [Seat(label=r.label, kind="ai", participant_id=r.id) for r in ai_rows]
-
-        # Placeholder until the engine (slice 3) drives phases: enter round 1 discussion.
-        session.phase = "DISCUSSION"
-        session.round = 1
-        session.phase_ends_at = now_ms() + int(self._settings.experiment.discussion_seconds * 1000)
-        await self._on_start(session)
+        await self._on_start(session)  # the engine takes over from WAITING
 
     def _spawn(self, coro: Awaitable[None]) -> None:
         task = asyncio.create_task(coro)

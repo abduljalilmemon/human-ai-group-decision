@@ -336,7 +336,7 @@ If time runs short, cut in this order: UI animations, extra blind defences beyon
 |---|---|---|
 | 1 | Scaffold, Docker, config, schema | Done |
 | 2 | Join and waiting room | Done |
-| 3 | Session engine and countdown | Not started |
+| 3 | Session engine and countdown | Done |
 | 4 | Real-time chat | Not started |
 | 5 | Voting and results | Not started |
 | 6 | AI agent and blind defences | Not started |

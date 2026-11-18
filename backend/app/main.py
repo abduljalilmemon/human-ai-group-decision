@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from . import routes, ws
 from .config import ConfigError, load_config
 from .db import SessionLocal, create_tables
+from .engine import SessionEngine
 from .lobby import Lobby
 
 # Fail fast at import: uvicorn exits with this message instead of a traceback.
@@ -23,10 +24,12 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 async def lifespan(app: FastAPI):
     await create_tables()
     connections = ws.ConnectionManager()
+    engine = SessionEngine(settings.experiment, SessionLocal, broadcast=connections.send_state)
     app.state.connections = connections
-    app.state.lobby = Lobby(settings, SessionLocal, on_start=connections.send_state)
+    app.state.lobby = Lobby(settings, SessionLocal, on_start=engine.start)
     yield
     await app.state.lobby.shutdown()
+    await engine.shutdown()
 
 
 app = FastAPI(title="Group Decision Experiment", lifespan=lifespan)
