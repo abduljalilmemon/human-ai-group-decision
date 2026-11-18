@@ -35,10 +35,11 @@ interface Props {
   remainingMs: number | null;
   serverNow: number; // changes with every state message, which triggers a resync
   phaseKey: string; // e.g. "VOTING-1"; the full ring is the time left when this phase was first seen
+  urgent?: boolean; // only phases where the participant must act turn red near the end
 }
 
 /** A ring that empties as the phase runs out, with the time in the middle. */
-export default function Countdown({ remainingMs, serverNow, phaseKey }: Props) {
+export default function Countdown({ remainingMs, serverNow, phaseKey, urgent = false }: Props) {
   const left = useCountdown(remainingMs, serverNow);
   const total = useRef<{ key: string; ms: number } | null>(null);
   const arc = useRef<SVGCircleElement>(null);
@@ -66,37 +67,40 @@ export default function Countdown({ remainingMs, serverNow, phaseKey }: Props) {
   }, [remainingMs, serverNow, phaseKey]);
 
   if (left === null || !total.current) return null;
-  const warn = left <= WARN_MS;
+  const warn = urgent && left <= WARN_MS;
 
   return (
-    <div className="relative h-16 w-16 shrink-0">
-      <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90" aria-hidden>
-        <circle cx="32" cy="32" r={R} fill="none" strokeWidth="5" className="stroke-track" />
-        <circle
-          ref={arc}
-          cx="32"
-          cy="32"
-          r={R}
-          fill="none"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeDasharray={CIRCUMFERENCE}
-          className={`transition-[stroke] duration-300 ${warn ? "stroke-danger" : "stroke-accent"}`}
-        />
-      </svg>
-      {/* role=timer is not announced on every change; the sr-only line below speaks once. */}
-      <span
-        role="timer"
-        className={`absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums transition-colors duration-300 ${
-          warn ? "text-danger" : "text-ink"
-        }`}
-      >
-        <span className="sr-only">Time left: </span>
-        {format(left)}
-      </span>
-      <span className="sr-only" aria-live="polite">
-        {warn && left > 0 ? "Less than ten seconds left." : ""}
-      </span>
+    <div className="flex shrink-0 flex-col items-center gap-1">
+      <div className="relative h-16 w-16">
+        <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90" aria-hidden>
+          <circle cx="32" cy="32" r={R} fill="none" strokeWidth="5" className="stroke-track" />
+          <circle
+            ref={arc}
+            cx="32"
+            cy="32"
+            r={R}
+            fill="none"
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeDasharray={CIRCUMFERENCE}
+            className={`transition-[stroke] duration-300 ${warn ? "stroke-danger" : "stroke-accent-text"}`}
+          />
+        </svg>
+        {/* role=timer is not announced on every change; the sr-only line below speaks once. */}
+        <span
+          role="timer"
+          className={`absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums transition-colors duration-300 ${
+            warn ? "text-danger" : "text-ink"
+          }`}
+        >
+          <span className="sr-only">Time left: </span>
+          {format(left)}
+        </span>
+        <span className="sr-only" aria-live="polite">
+          {warn && left > 0 ? "Less than ten seconds left." : ""}
+        </span>
+      </div>
+      <span aria-hidden className="label">Time left</span>
     </div>
   );
 }

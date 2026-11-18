@@ -61,8 +61,8 @@ export default function Voting({ state, error, onVote }: Props) {
                 aria-pressed={selected}
                 className={`relative flex w-full flex-col items-center gap-2.5 rounded-2xl border-2 px-2 py-5 text-center transition duration-200 ease-out sm:gap-3 sm:py-6 ${
                   selected
-                    ? "border-accent bg-accent-soft shadow-[0_10px_24px_-12px_oklch(49%_0.2_272/0.55)]"
-                    : "border-line bg-surface enabled:hover:-translate-y-1 enabled:hover:border-accent/45 enabled:hover:shadow-[0_12px_28px_-14px_oklch(25%_0.03_264/0.35)]"
+                    ? "border-accent-text bg-accent-soft shadow-[0_16px_32px_-14px_oklch(0%_0_0/0.7)]"
+                    : "border-line bg-surface enabled:hover:-translate-y-1 enabled:hover:border-accent-text/50 enabled:hover:bg-raised enabled:hover:shadow-[0_16px_32px_-14px_oklch(0%_0_0/0.6)]"
                 } enabled:active:translate-y-0 enabled:active:scale-[0.96] disabled:cursor-default ${
                   locked && !selected ? "opacity-50" : ""
                 }`}
@@ -75,7 +75,7 @@ export default function Voting({ state, error, onVote }: Props) {
                 <Avatar label={label} size="md" />
                 <span className="text-sm font-semibold text-ink sm:text-base">
                   {label}
-                  {label === state.you && <span className="block text-xs font-normal text-muted">You</span>}
+                  {label === state.you && <span className="label mt-1 block">You</span>}
                 </span>
               </button>
             </li>
@@ -97,7 +97,7 @@ export default function Voting({ state, error, onVote }: Props) {
           <button
             type="button"
             onClick={confirm}
-            className="animate-enter rounded-xl bg-accent px-6 py-3 font-semibold text-white shadow-[0_6px_16px_-6px_oklch(49%_0.2_272/0.6)] transition duration-150 hover:-translate-y-px hover:bg-accent-hover active:translate-y-0 active:scale-[0.97]"
+            className="btn-primary animate-enter rounded-full px-7 py-3 font-semibold transition duration-150 hover:-translate-y-px active:translate-y-0 active:scale-[0.97]"
           >
             Confirm vote for {choice}
           </button>

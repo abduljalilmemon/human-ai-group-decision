@@ -7,7 +7,7 @@ export default function Waiting() {
         <span className="absolute inset-0 rounded-full bg-accent-soft" />
         <span className="orbit-ring absolute inset-0 animate-orbit rounded-full" />
         <span className="absolute inset-7 animate-breathe rounded-full bg-[radial-gradient(circle,oklch(49%_0.2_272/0.35),transparent_70%)]" />
-        <span className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_2px_8px_oklch(49%_0.2_272/0.5)]" />
+        <span className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent" />
       </div>
       <h1 className="text-2xl font-semibold tracking-tight text-balance">Waiting room</h1>
       <p className="mx-auto mt-2 max-w-[38ch] text-muted">

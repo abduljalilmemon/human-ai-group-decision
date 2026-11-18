@@ -1,29 +1,37 @@
 @import "tailwindcss";
 
-/* Design tokens. One accent (indigo). Player tints are keyed by label letter only, never by kind. */
+/*
+ * Dark glass. One accent (indigo), which glows on focus and on primary actions.
+ * Player tints are keyed by label letter only, never by participant type.
+ * Contrast was checked at the worst case: glass over the brightest point of a glow orb.
+ */
 @theme {
-  --color-canvas: oklch(97.2% 0.007 260);
-  --color-surface: oklch(100% 0 0);
-  --color-ink: oklch(25% 0.03 264);
-  --color-muted: oklch(47% 0.025 262); /* >= 4.5:1 on surface and canvas */
-  --color-line: oklch(91% 0.012 262);
-  --color-track: oklch(94% 0.01 262);
+  --color-canvas: oklch(16% 0.035 265); /* ink-navy page */
+  --color-glass: oklch(22% 0.03 265 / 0.72); /* main panel and banners, over a backdrop blur */
+  --color-glass-solid: oklch(22% 0.03 265); /* fallback: no blur, or reduced transparency */
+  --color-surface: oklch(100% 0 0 / 0.06); /* inner glass: inputs, cards, chips */
+  --color-raised: oklch(100% 0 0 / 0.09); /* others' chat bubbles */
+  --color-ink: oklch(96% 0.008 265);
+  --color-muted: oklch(78% 0.02 265); /* >= 5:1 on every glass layer */
+  --color-line: oklch(100% 0 0 / 0.12);
+  --color-track: oklch(100% 0 0 / 0.1);
 
-  --color-accent: oklch(49% 0.2 272);
-  --color-accent-hover: oklch(43% 0.2 272);
-  --color-accent-soft: oklch(95.5% 0.03 272);
+  --color-accent: oklch(55.5% 0.2 276); /* fills, white text 5:1 */
+  --color-accent-hover: oklch(60% 0.2 276);
+  --color-accent-text: oklch(80% 0.12 276); /* accent as text or ring on glass */
+  --color-accent-soft: oklch(55.5% 0.2 276 / 0.2);
 
-  --color-danger: oklch(50% 0.19 25);
-  --color-success: oklch(47% 0.12 155);
-  --color-warn-bg: oklch(95% 0.06 85);
-  --color-warn-ink: oklch(38% 0.08 70);
+  --color-danger: oklch(75% 0.15 22);
+  --color-success: oklch(80% 0.14 160);
+  --color-warn-bg: oklch(32% 0.07 75 / 0.85);
+  --color-warn-ink: oklch(88% 0.12 85);
 
-  --color-player-a: oklch(89% 0.07 55);
-  --color-player-a-ink: oklch(38% 0.09 50);
-  --color-player-b: oklch(89% 0.06 180);
-  --color-player-b-ink: oklch(36% 0.07 185);
-  --color-player-c: oklch(89% 0.06 315);
-  --color-player-c-ink: oklch(38% 0.09 315);
+  --color-player-a: oklch(80% 0.09 55);
+  --color-player-a-ink: oklch(26% 0.07 55);
+  --color-player-b: oklch(80% 0.09 180);
+  --color-player-b-ink: oklch(26% 0.07 180);
+  --color-player-c: oklch(80% 0.09 315);
+  --color-player-c-ink: oklch(26% 0.07 315);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -36,7 +44,9 @@
   --animate-halo: halo 1.6s var(--ease-out-expo) both;
   --animate-orbit: spin 14s linear infinite;
   --animate-breathe: breathe 4s ease-in-out infinite;
-  --animate-drift: drift 28s ease-in-out infinite alternate;
+  --animate-drift-a: drift-a 34s ease-in-out infinite alternate;
+  --animate-drift-b: drift-b 41s ease-in-out infinite alternate;
+  --animate-drift-c: drift-c 47s ease-in-out infinite alternate;
 
   @keyframes enter {
     from { opacity: 0; transform: translateY(8px); }
@@ -60,20 +70,29 @@
     to { stroke-dashoffset: 0; }
   }
   @keyframes reveal {
-    from { opacity: 0; transform: scale(0.7); filter: blur(10px); }
-    to { opacity: 1; transform: none; filter: none; }
+    from { opacity: 0; transform: scale(0.7); }
+    to { opacity: 1; transform: none; }
   }
+  /* The halo is a separate ring element so only transform and opacity animate. */
   @keyframes halo {
-    from { box-shadow: 0 0 0 0 oklch(49% 0.2 272 / 0.4); }
-    to { box-shadow: 0 0 0 36px oklch(49% 0.2 272 / 0); }
+    from { opacity: 0.7; transform: scale(1); }
+    to { opacity: 0; transform: scale(1.7); }
   }
   @keyframes breathe {
-    0%, 100% { transform: scale(0.92); opacity: 0.55; }
-    50% { transform: scale(1.06); opacity: 1; }
+    0%, 100% { transform: scale(0.9); opacity: 0.5; }
+    50% { transform: scale(1.08); opacity: 1; }
   }
-  @keyframes drift {
-    from { transform: translate3d(-3%, -2%, 0) rotate(0deg); }
-    to { transform: translate3d(3%, 2%, 0) rotate(8deg); }
+  @keyframes drift-a {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(14vw, 10vh, 0) scale(1.15); }
+  }
+  @keyframes drift-b {
+    from { transform: translate3d(0, 0, 0) scale(1.1); }
+    to { transform: translate3d(-12vw, -8vh, 0) scale(0.95); }
+  }
+  @keyframes drift-c {
+    from { transform: translate3d(0, 0, 0); opacity: 0.6; }
+    to { transform: translate3d(8vw, -12vh, 0); opacity: 1; }
   }
 }
 
@@ -81,63 +100,105 @@
   html {
     background: var(--color-canvas);
     color: var(--color-ink);
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: var(--color-accent-soft);
+    background: oklch(55.5% 0.2 276 / 0.45);
     color: var(--color-ink);
   }
   input,
   textarea {
-    caret-color: var(--color-accent);
+    caret-color: var(--color-accent-text);
   }
+  /* The accent glows on focus. */
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-accent-text);
     outline-offset: 2px;
+    box-shadow: 0 0 18px oklch(55.5% 0.2 276 / 0.55);
   }
   * {
-    scrollbar-color: var(--color-line) transparent;
+    scrollbar-color: oklch(100% 0 0 / 0.18) transparent;
     scrollbar-width: thin;
   }
 }
 
 @layer components {
-  /* Two soft light fields that drift slowly, over a faint dot grid. Transform-only, so it stays on the compositor. */
-  .backdrop-fields {
+  /* Glow orbs: radial gradients are already soft, so no filter: blur layer is needed. Transform-only drift. */
+  .orb {
     position: absolute;
-    inset: -20%;
-    background:
-      radial-gradient(38% 32% at 22% 18%, oklch(91% 0.035 265 / 0.6), transparent 70%),
-      radial-gradient(34% 30% at 82% 78%, oklch(93% 0.025 75 / 0.7), transparent 70%);
+    border-radius: 9999px;
     will-change: transform;
   }
-  .backdrop-dots {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(oklch(47% 0.025 262 / 0.14) 1px, transparent 1px);
-    background-size: 22px 22px;
-    mask-image: radial-gradient(70% 60% at 50% 35%, black, transparent);
+  .orb-a {
+    width: 60vmax; height: 60vmax; left: -18vmax; top: -22vmax;
+    background: radial-gradient(closest-side, oklch(55% 0.2 276 / 0.55), transparent);
   }
-  /* The panel: layered offset shadows plus a hairline top highlight. */
-  .panel {
-    background: var(--color-surface);
-    border-radius: 1.75rem;
+  .orb-b {
+    width: 52vmax; height: 52vmax; right: -16vmax; bottom: -20vmax;
+    background: radial-gradient(closest-side, oklch(50% 0.13 245 / 0.5), transparent);
+  }
+  .orb-c {
+    width: 34vmax; height: 34vmax; right: 18vw; top: 8vh;
+    background: radial-gradient(closest-side, oklch(55% 0.1 30 / 0.22), transparent);
+  }
+
+  /* Frosted glass: the main panel and banners are the only blurred layers. */
+  .glass {
+    background: var(--color-glass);
+    border: 1px solid var(--color-line);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
     box-shadow:
-      inset 0 1px 0 oklch(100% 0 0),
-      0 0 0 1px oklch(25% 0.03 264 / 0.07),
-      0 2px 4px oklch(25% 0.03 264 / 0.04),
-      0 12px 24px -8px oklch(25% 0.03 264 / 0.08),
-      0 32px 64px -24px oklch(35% 0.12 272 / 0.18);
+      inset 0 1px 0 oklch(100% 0 0 / 0.08),
+      0 2px 6px oklch(0% 0 0 / 0.25),
+      0 30px 60px -24px oklch(0% 0 0 / 0.6);
   }
-  /* Waiting room ring: a slowly turning accent arc. Shows nothing countable. */
+  .panel {
+    border-radius: 1.75rem;
+  }
+
+  /* Small wide-tracked uppercase label. */
+  .label {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* Primary action: accent fill with a soft glow. */
+  .btn-primary {
+    background: var(--color-accent);
+    color: oklch(100% 0 0);
+    box-shadow: 0 0 0 1px oklch(70% 0.15 276 / 0.5), 0 8px 24px -8px oklch(55.5% 0.2 276 / 0.8);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+  }
+
   .orbit-ring {
-    background: conic-gradient(from 0deg, transparent 0deg, oklch(49% 0.2 272 / 0.08) 90deg, oklch(49% 0.2 272 / 0.85) 300deg, transparent 360deg);
+    background: conic-gradient(from 0deg, transparent 0deg, oklch(70% 0.16 276 / 0.1) 90deg, oklch(80% 0.12 276 / 0.9) 300deg, transparent 360deg);
     mask: radial-gradient(farthest-side, transparent calc(100% - 3px), black calc(100% - 2px));
   }
 }
 
-/* One switch for every CSS animation and transition in the app; motion's MotionConfig handles its own. */
+/* Solid fallback where backdrop-filter is unsupported or transparency should be reduced. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: var(--color-glass-solid); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--color-glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .orb { display: none; }
+}
+
+/* One switch for every CSS animation and transition; motion's MotionConfig handles its own. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

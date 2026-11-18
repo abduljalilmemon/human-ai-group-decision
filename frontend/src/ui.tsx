@@ -38,7 +38,7 @@ export function Avatar({ label, size = "sm" }: { label: string; size?: keyof typ
 export function YouChip({ label }: { label: string | null }) {
   if (!label) return null;
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-canvas py-1 pr-3 pl-1 text-sm text-muted ring-1 ring-line">
+    <span className="inline-flex items-center gap-2 rounded-full bg-surface py-1 pr-3 pl-1 text-sm text-muted ring-1 ring-line">
       <Avatar label={label} />
       <span>
         You are <span className="font-semibold text-ink">{label}</span>
@@ -67,13 +67,14 @@ function stepIndex(phase: Phase, round: number): number {
 /** Where the session is: driven only by the server's phase and round. */
 export function Stepper({ phase, round }: { phase: Phase; round: number }) {
   const active = stepIndex(phase, round);
-  const fill = Math.max(0, active) / (STEPS.length - 1);
+  // During a round's results the track is already halfway to the next round.
+  const fill = (Math.max(0, active) + (phase === "ROUND_RESULT" ? 0.5 : 0)) / (STEPS.length - 1);
   return (
     <nav aria-label="Session progress">
       <ol className="relative grid grid-cols-5">
         <span aria-hidden className="absolute top-[9px] right-[10%] left-[10%] h-0.5 overflow-hidden rounded-full bg-line">
           <span
-            className="block h-full origin-left bg-accent transition-transform duration-700 ease-[var(--ease-out-expo)]"
+            className="block h-full origin-left bg-accent-text transition-transform duration-700 ease-[var(--ease-out-expo)]"
             style={{ transform: `scaleX(${fill})` }}
           />
         </span>
@@ -84,15 +85,15 @@ export function Stepper({ phase, round }: { phase: Phase; round: number }) {
             <li key={i} className="relative flex flex-col items-center gap-1.5" aria-current={current ? "step" : undefined}>
               <span className="relative flex h-5 w-5 items-center justify-center">
                 {current && (
-                  <span className="absolute inset-0 animate-pop rounded-full bg-accent-soft ring-2 ring-accent" />
+                  <span className="absolute inset-0 animate-pop rounded-full bg-accent-soft ring-2 ring-accent-text" />
                 )}
                 <span
                   className={`relative h-2.5 w-2.5 rounded-full transition-colors duration-500 ${
-                    done || current ? "bg-accent" : "bg-surface ring-2 ring-line"
+                    done || current ? "bg-accent-text" : "bg-canvas ring-2 ring-line"
                   }`}
                 />
               </span>
-              <span className={`text-xs transition-colors duration-500 ${current ? "font-semibold text-ink" : "text-muted"}`}>
+              <span className={`text-[0.6875rem] font-semibold tracking-[0.14em] uppercase transition-colors duration-500 ${current ? "text-ink" : "text-muted"}`}>
                 {step}
                 {done && <span className="sr-only"> (done)</span>}
               </span>
@@ -115,7 +116,12 @@ export function PhaseHeader({ state, title, hint }: { state: ServerState; title:
           <YouChip label={state.you} />
         </div>
       </div>
-      <Countdown remainingMs={state.remaining_ms} serverNow={state.server_now} phaseKey={`${state.phase}-${state.round}`} />
+      <Countdown
+        remainingMs={state.remaining_ms}
+        serverNow={state.server_now}
+        phaseKey={`${state.phase}-${state.round}`}
+        urgent={state.phase === "DISCUSSION" || state.phase === "VOTING"}
+      />
     </header>
   );
 }
@@ -161,8 +167,8 @@ export function Banner({ tone, children }: { tone: "warn" | "info"; children: Re
       className="fixed inset-x-0 top-0 z-20 flex justify-center p-3"
     >
       <div
-        className={`flex max-w-[calc(100vw-2rem)] items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-medium shadow-[0_8px_24px_-10px_oklch(25%_0.03_264/0.35)] ring-1 ${
-          tone === "warn" ? "bg-warn-bg text-warn-ink ring-warn-ink/20" : "bg-ink text-white ring-ink"
+        className={`flex max-w-[calc(100vw-2rem)] items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-medium ${
+          tone === "warn" ? "glass bg-warn-bg text-warn-ink" : "glass text-ink"
         }`}
       >
         {children}

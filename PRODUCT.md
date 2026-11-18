@@ -52,3 +52,11 @@ No brand identity, logo, or name beyond the neutral experiment framing. Voice is
 
 ## Accessibility & Inclusion
 Target WCAG 2.2 AA: sufficient contrast, full keyboard operation (chat input and vote choices), visible focus, countdowns and phase changes announced to assistive tech without being noisy, and support for prefers-reduced-motion.
+
+## Visual Direction
+Dark, premium, calm: a deep ink-navy background with a few large soft glow orbs that drift slowly,
+and frosted glass panels (translucent fill, 1px light border, backdrop blur, soft shadow). Rounded corners,
+pill chips, small wide-tracked uppercase labels, and an accent that glows on focus and on primary actions.
+This is a style choice only. It must not use sparkle icons, "AI"/"assistant" wording, online/status
+indicators, or any element that differs between human and AI participants. Text must keep WCAG AA contrast
+over glass, with a solid fallback when blur or transparency is unavailable or reduced.

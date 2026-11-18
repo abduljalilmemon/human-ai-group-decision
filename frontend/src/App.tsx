@@ -20,8 +20,9 @@ const PHASE_ANNOUNCE: Record<ServerState["phase"], (round: number) => string> = 
 function Backdrop() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="backdrop-fields animate-drift" />
-      <div className="backdrop-dots" />
+      <div className="orb orb-a animate-drift-a" />
+      <div className="orb orb-b animate-drift-b" />
+      <div className="orb orb-c animate-drift-c" />
     </div>
   );
 }
@@ -36,10 +37,10 @@ function Join({ onJoin, busy, error }: { onJoin: () => void; busy: boolean; erro
       <p className="mx-auto mt-3 max-w-[42ch] text-muted">
         You will chat with two other participants for two short rounds and vote for a Decision Maker.
       </p>
-      <ol className="mx-auto mt-7 grid max-w-sm gap-2.5 text-left text-sm">
+      <ol className="mx-auto mt-7 flex max-w-md flex-wrap justify-center gap-2 text-sm">
         {STEPS_JOIN.map((s, i) => (
-          <li key={s} className="flex items-center gap-3 rounded-xl bg-canvas px-3.5 py-2.5 ring-1 ring-line">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
+          <li key={s} className="flex items-center gap-3 rounded-full bg-surface py-2 pr-4 pl-2 ring-1 ring-line">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent-text">
               {i + 1}
             </span>
             <span className="text-ink">{s}</span>
@@ -47,7 +48,7 @@ function Join({ onJoin, busy, error }: { onJoin: () => void; busy: boolean; erro
         ))}
       </ol>
       {sessionGone && (
-        <p role="status" className="mt-6 animate-enter rounded-xl bg-warn-bg px-4 py-3 text-sm text-warn-ink">
+        <p role="status" className="mt-6 animate-enter rounded-2xl bg-warn-bg px-4 py-3 text-sm text-warn-ink ring-1 ring-warn-ink/25">
           Your previous session is no longer available. You can join a new one.
         </p>
       )}
@@ -59,7 +60,7 @@ function Join({ onJoin, busy, error }: { onJoin: () => void; busy: boolean; erro
       <button
         onClick={onJoin}
         disabled={busy}
-        className="mt-7 inline-flex min-w-44 items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 font-semibold text-white shadow-[0_6px_16px_-6px_oklch(49%_0.2_272/0.6)] transition duration-150 hover:-translate-y-px hover:bg-accent-hover active:translate-y-0 active:scale-[0.97] disabled:cursor-wait disabled:opacity-70"
+        className="btn-primary mt-8 inline-flex min-w-44 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold transition duration-150 hover:-translate-y-px active:translate-y-0 active:scale-[0.97] disabled:cursor-wait disabled:opacity-70"
       >
         {busy && <Spinner />}
         {busy ? "Joining…" : sessionGone ? "Join a new session" : "Join"}
@@ -107,13 +108,13 @@ export default function App() {
             {/* A replaced tab keeps its last screen, dimmed and inert, under the banner. */}
             <main
               ref={panel}
-              className={`panel relative overflow-hidden p-6 transition-opacity duration-300 sm:p-8 ${replaced && state ? "opacity-50" : ""}`}
+              className={`glass panel relative overflow-hidden p-6 transition-opacity duration-300 sm:p-8 ${replaced && state ? "opacity-50" : ""}`}
             >
               <AnimatePresence mode="popLayout" initial={false}>
                 <m.div
                   key={screenKey(session)}
-                  initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >

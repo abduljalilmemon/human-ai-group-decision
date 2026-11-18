@@ -34,7 +34,7 @@ function TallyBars({ tallies, players, you, highlight, delayMs = 0 }: {
               </div>
               <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-track">
                 <div
-                  className={`h-full origin-left animate-grow rounded-full ${win ? "bg-accent" : "bg-muted/55"}`}
+                  className={`h-full origin-left animate-grow rounded-full ${win ? "bg-accent-text" : "bg-muted/45"}`}
                   style={{ width: `${(count / max) * 100}%`, animationDelay: `${delayMs + i * 90}ms` }}
                 />
               </div>
@@ -92,8 +92,9 @@ export function FinalResults({ state, result }: { state: ServerState; result: Fi
           <Spinner /> Counting votes…
         </p>
         <div className="flex flex-col items-center">
-          <span className="animate-reveal rounded-full" style={at(0)}>
-            <span className="block animate-halo rounded-full" style={at(350)}>
+          <span className="relative animate-reveal rounded-full" style={at(0)}>
+            <span aria-hidden className="absolute inset-0 animate-halo rounded-full ring-2 ring-accent-text" style={at(350)} />
+            <span className="block rounded-full shadow-[0_18px_40px_-12px_oklch(0%_0_0/0.7)]">
               <Avatar label={result.decision_maker} size="xl" />
             </span>
           </span>
@@ -101,12 +102,12 @@ export function FinalResults({ state, result }: { state: ServerState; result: Fi
             {result.decision_maker} is the Decision Maker
           </h1>
           {result.decision_maker === state.you && (
-            <p className="mt-2 animate-enter text-sm font-medium text-accent" style={at(400)}>
-              That's you.
+            <p className="mt-3 animate-enter rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold tracking-[0.14em] text-accent-text uppercase ring-1 ring-accent-text/40" style={at(400)}>
+              That's you
             </p>
           )}
           {tieNote && (
-            <p className="mt-2 animate-enter text-sm text-muted" style={at(400)}>
+            <p className="mt-3 animate-enter rounded-full bg-surface px-3 py-1 text-xs text-muted ring-1 ring-line" style={at(400)}>
               {tieNote}
             </p>
           )}
@@ -115,7 +116,7 @@ export function FinalResults({ state, result }: { state: ServerState; result: Fi
       <div className="mt-9 animate-enter space-y-6 border-t border-line pt-6" style={at(500)}>
         {rounds.map((r) => (
           <section key={r}>
-            <h2 className="mb-3 text-sm font-semibold text-ink">Round {r}</h2>
+            <h2 className="label mb-3">Round {r}</h2>
             <TallyBars
               tallies={result.tallies_by_round[r]}
               players={state.players}

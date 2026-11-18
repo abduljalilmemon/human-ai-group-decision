@@ -46,7 +46,7 @@ function Bubble({ message, mine, first }: { message: ChatMessage; mine: boolean;
           className={`rounded-2xl px-3.5 py-2 text-[0.9375rem] leading-relaxed break-words whitespace-normal ${
             mine
               ? "rounded-br-md bg-accent text-white"
-              : "rounded-bl-md bg-track text-ink"
+              : "rounded-bl-md bg-raised text-ink"
           }`}
         >
           {message.text}
@@ -59,7 +59,7 @@ function Bubble({ message, mine, first }: { message: ChatMessage; mine: boolean;
 function EmptyHint() {
   return (
     <li className="flex h-full animate-enter flex-col items-center justify-center gap-3 px-6 text-center">
-      <svg viewBox="0 0 32 32" className="h-9 w-9 text-accent/70" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+      <svg viewBox="0 0 32 32" className="h-9 w-9 text-accent-text/80" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
         <path d="M6 8.5A3.5 3.5 0 0 1 9.5 5h13A3.5 3.5 0 0 1 26 8.5v9a3.5 3.5 0 0 1-3.5 3.5H14l-5.5 5v-5h0A3.5 3.5 0 0 1 6 17.5z" strokeLinejoin="round" />
         <path d="M11 11.5h10M11 15.5h6" strokeLinecap="round" />
       </svg>
@@ -109,7 +109,7 @@ export default function Discussion({ state, messages, error, onSend }: Props) {
         aria-label="Chat messages"
         aria-live="polite"
         aria-relevant="additions"
-        className="-mx-6 mt-5 h-[min(24rem,calc(100dvh-24rem))] min-h-60 overflow-y-auto border-y border-line px-6 py-4 sm:-mx-8 sm:px-8"
+        className="-mx-6 mt-5 h-[min(24rem,calc(100dvh-24rem))] min-h-60 overflow-y-auto border-y border-line bg-[oklch(0%_0_0/0.14)] px-6 py-4 sm:-mx-8 sm:px-8"
       >
         {messages.length === 0 && <EmptyHint />}
         {messages.map((m, i) => (
@@ -129,12 +129,12 @@ export default function Discussion({ state, messages, error, onSend }: Props) {
           placeholder="Type a message…"
           autoComplete="off"
           autoFocus
-          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-4 py-2.5 text-[0.9375rem] text-ink transition-[border-color,box-shadow] duration-200 placeholder:text-muted hover:border-muted/40 focus:border-accent focus:outline-none focus-visible:ring-4 focus-visible:ring-accent-soft"
+          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-4 py-2.5 text-[0.9375rem] text-ink transition-[border-color,box-shadow] duration-200 placeholder:text-muted hover:border-muted/40 focus:border-accent-text focus:outline-none focus-visible:ring-4 focus-visible:ring-accent-soft"
         />
         <button
           type="submit"
           disabled={!draft.trim()}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition duration-150 hover:bg-accent-hover active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 sm:px-5"
+          className="btn-primary inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition duration-150 active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted disabled:shadow-none disabled:active:scale-100 sm:px-5"
         >
           Send
           <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
@@ -142,12 +142,14 @@ export default function Discussion({ state, messages, error, onSend }: Props) {
           </svg>
         </button>
       </form>
-      <div className="mt-2 flex min-h-5 items-start justify-between gap-3">
-        <div>{error && <ErrorLine>{ERROR_TEXT[error] ?? error}</ErrorLine>}</div>
-        {draft.length >= COUNTER_FROM && (
-          <span className="text-xs text-muted tabular-nums">{MAX_CHAT_CHARS - draft.length} characters left</span>
-        )}
-      </div>
+      {(error || draft.length >= COUNTER_FROM) && (
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <div>{error && <ErrorLine>{ERROR_TEXT[error] ?? error}</ErrorLine>}</div>
+          {draft.length >= COUNTER_FROM && (
+            <span className="text-xs text-muted tabular-nums">{MAX_CHAT_CHARS - draft.length} characters left</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
