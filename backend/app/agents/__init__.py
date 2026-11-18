@@ -13,15 +13,30 @@ log = logging.getLogger(__name__)
 # Called once per AI seat with a set shared by all AI seats of the same session.
 AgentFactory = Callable[[set[str]], Agent]
 
+KEY_VARS = {"anthropic": "ANTHROPIC_API_KEY", "gemini": "GEMINI_API_KEY"}
+
 
 def make_agent_factory(ai: AI, rng: random.Random | None = None) -> AgentFactory:
     rng = rng or random.Random()
-    if ai.provider == "anthropic" and os.getenv("ANTHROPIC_API_KEY"):
-        from .llm import LLMAgent, make_client
+    if ai.provider == "scripted":
+        log.info("AI agents: scripted")
+        return lambda used: ScriptedAgent(rng, used)
 
-        client = make_client(ai.reply_timeout_seconds)
-        log.info("AI agents: LLM (%s)", ai.model)
-        return lambda used: LLMAgent(client, ai.model, ai.reply_timeout_seconds, ScriptedAgent(rng, used))
-    log.info("AI agents: scripted (provider=%s, API key %s)", ai.provider,
-             "set" if os.getenv("ANTHROPIC_API_KEY") else "missing")
-    return lambda used: ScriptedAgent(rng, used)
+    key = os.getenv(KEY_VARS[ai.provider])
+    if not key:
+        log.warning("%s agent fell back to scripted: %s is not set", ai.provider, KEY_VARS[ai.provider])
+        return lambda used: ScriptedAgent(rng, used)
+
+    if ai.provider == "gemini":
+        from . import gemini
+
+        client = gemini.make_client(key, ai.reply_timeout_seconds)
+        log.info("AI agents: gemini (%s)", ai.gemini_model)
+        return lambda used: gemini.GeminiAgent(client, ai.gemini_model, ai.reply_timeout_seconds,
+                                               ScriptedAgent(rng, used))
+
+    from .llm import LLMAgent, make_client
+
+    client = make_client(ai.reply_timeout_seconds)
+    log.info("AI agents: anthropic (%s)", ai.model)
+    return lambda used: LLMAgent(client, ai.model, ai.reply_timeout_seconds, ScriptedAgent(rng, used))

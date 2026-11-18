@@ -4,4 +4,5 @@ SQLAlchemy[asyncio]==2.0.36
 asyncpg==0.30.0
 PyYAML==6.0.2
 anthropic==2.10.0
+google-genai==3.5.0
 pytest==8.3.4

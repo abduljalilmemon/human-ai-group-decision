@@ -36,8 +36,9 @@ class Participant(_Strict):
 
 
 class AI(_Strict):
-    provider: Literal["anthropic", "scripted"] = "scripted"
-    model: str = Field(min_length=1)
+    provider: Literal["anthropic", "gemini", "scripted"] = "scripted"
+    model: str = Field(min_length=1)  # Anthropic model, used when provider is anthropic
+    gemini_model: str = Field(default="gemini-3.5-flash-lite", min_length=1)  # used when provider is gemini
     reply_timeout_seconds: PositiveFloat = 8
 
 

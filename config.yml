@@ -18,6 +18,7 @@ participants:
 - type: ai
 
 ai:
-  provider: anthropic           # anthropic | scripted (anthropic falls back to scripted without an API key)
-  model: claude-haiku-5-5
+  provider: gemini           # anthropic | gemini | scripted (an LLM provider falls back to scripted without its API key)
+  model: claude-haiku-5-5       # used when provider is anthropic (ANTHROPIC_API_KEY)
+  gemini_model: gemini-3.5-flash-lite  # used when provider is gemini (GEMINI_API_KEY)
   reply_timeout_seconds: 8

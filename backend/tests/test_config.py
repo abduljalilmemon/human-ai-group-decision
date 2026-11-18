@@ -74,6 +74,7 @@ def test_three_conditions(tmp_path, types, condition):
         (variant(**{"experiment.min_wait_seconds": [8, 3]}), "min <= max"),
         (variant(**{"experiment.rounds": 3}), "experiment.rounds"),
         (variant(**{"ai.provider": "other"}), "ai.provider"),
+        (variant(**{"ai.gemini_model": ""}), "ai.gemini_model"),
         (variant(**{"experiment.typo_key": 1}), "typo_key"),
     ],
 )
@@ -93,3 +94,10 @@ def test_bad_yaml(tmp_path):
     path.write_text("participants: [unclosed", encoding="utf-8")
     with pytest.raises(ConfigError, match="not valid YAML"):
         load_config(path)
+
+
+@pytest.mark.parametrize("provider", ["anthropic", "gemini", "scripted"])
+def test_ai_providers_accepted(tmp_path, provider):
+    cfg = load_config(write(tmp_path, variant(**{"ai.provider": provider})))
+    assert cfg.ai.provider == provider
+    assert cfg.ai.gemini_model == "gemini-3.5-flash-lite"  # default when not set
