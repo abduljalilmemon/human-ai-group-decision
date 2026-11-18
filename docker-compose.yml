@@ -20,6 +20,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-experiment}
       CONFIG_PATH: /app/config.yml
+      # Read from .env (gitignored); empty means the scripted fallback agent.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:
       # Switch condition by editing config.yml, then `docker compose restart app` (no rebuild).
       - ./config.yml:/app/config.yml:ro

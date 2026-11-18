@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from . import routes, ws
+from .agents import make_agent_factory
 from .config import ConfigError, load_config
 from .db import SessionLocal, create_tables
 from .engine import SessionEngine
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI):
         broadcast=connections.send_state,
         send_all=connections.send_all,
         send_state=connections.send_state_to,
+        make_agent=make_agent_factory(settings.ai),
     )
     app.state.connections = connections
     app.state.engine = engine

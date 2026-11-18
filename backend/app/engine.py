@@ -15,6 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .config import Experiment
 from . import protocol, voting
+from .agents import AgentFactory
+from .agents.base import AgentSeat, SessionAgents
 from .lobby import LiveSession, Seat
 from .models import Event, ExperimentSession, Message, Vote
 from .protocol import Payload, now_ms
@@ -189,9 +191,12 @@ class SessionEngine:
         broadcast: Hook,
         send_all: SendAll,
         send_state: SendOne,
+        make_agent: AgentFactory | None = None,
         rng: random.Random | None = None,
     ):
         self._exp = exp
+        self._make_agent = make_agent
+        self._agents: dict[int, SessionAgents] = {}  # session id -> its AI seats
         self._db = db
         self._broadcast = broadcast
         self._send_all = send_all
@@ -201,16 +206,22 @@ class SessionEngine:
 
     async def start(self, session: LiveSession) -> None:
         """Lobby callback: run this session's phases in the background."""
+        self._agents[session.id] = self._seat_agents(session)
         task = asyncio.create_task(
             run_session(
-                session, self._exp, persist=self._persist, broadcast=self._broadcast, end_voting=self._close_voting
+                session, self._exp, persist=self._persist, broadcast=self._on_phase, end_voting=self._close_voting
             )
         )
         self._tasks.add(task)
-        task.add_done_callback(self._task_done)
+        task.add_done_callback(lambda t: self._task_done(t, session.id))
 
     async def submit_chat(self, session: LiveSession, seat: Seat, text: Any) -> str | None:
-        return await submit_chat(session, seat, text, save=self._save_message, send_all=self._send_all)
+        """Used by humans (ws.py) and AI seats alike."""
+        round_ = session.round
+        reason = await submit_chat(session, seat, text, save=self._save_message, send_all=self._send_all)
+        if reason is None and session.id in self._agents:
+            self._agents[session.id].on_message(round_, seat.label, text.strip())
+        return reason
 
     async def submit_vote(self, session: LiveSession, seat: Seat, target: Any) -> str | None:
         return await submit_vote(session, seat, target, save=self._save_votes, send_state=self._send_state)
@@ -221,7 +232,33 @@ class SessionEngine:
             send_all=self._send_all, rng=self._rng,
         )
 
+    def _seat_agents(self, session: LiveSession) -> SessionAgents:
+        transcript: list = []
+        used_lines: set[str] = set()
+        seats = [
+            AgentSeat(
+                agent=self._make_agent(used_lines), seat=seat, session=session, transcript=transcript,
+                submit_chat=self.submit_chat, submit_vote=self.submit_vote, rng=self._rng,
+            )
+            for seat in session.seats
+            if seat.kind == "ai" and self._make_agent is not None
+        ]
+        return SessionAgents(seats, transcript)
+
+    async def _on_phase(self, session: LiveSession) -> None:
+        """Broadcast the new phase to humans first, then let the AI seats react to it."""
+        await self._broadcast(session)
+        agents = self._agents.get(session.id)
+        if agents is None:
+            return
+        if session.phase == FINAL:
+            self._agents.pop(session.id).close()
+        else:
+            agents.on_phase()
+
     async def shutdown(self) -> None:
+        for agents in self._agents.values():
+            agents.close()
         for task in self._tasks:
             task.cancel()
         await asyncio.gather(*self._tasks, return_exceptions=True)
@@ -278,7 +315,10 @@ class SessionEngine:
             ))
             await db.commit()
 
-    def _task_done(self, task: asyncio.Task) -> None:
+    def _task_done(self, task: asyncio.Task, session_id: int) -> None:
         self._tasks.discard(task)
+        agents = self._agents.pop(session_id, None)
+        if agents is not None:  # session ended abnormally: stop its agents too
+            agents.close()
         if not task.cancelled() and task.exception():
             log.error("Session engine failed", exc_info=task.exception())
