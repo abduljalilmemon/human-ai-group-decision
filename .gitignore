@@ -224,3 +224,8 @@ __marimo__/
 
 # Node
 node_modules/
+
+
+.claude/skills/impeccable/
+.claude/agents/
+.claude/settings.local.json
