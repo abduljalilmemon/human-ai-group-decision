@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import Countdown from "./Countdown";
 import { useSession, type ServerState } from "./useSession";
+import Discussion from "./views/Discussion";
 import Waiting from "./views/Waiting";
 
-function Card({ children }: { children: ReactNode }) {
+function Card({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 p-4 text-slate-800 sm:p-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+      <div className={`w-full ${wide ? "max-w-xl p-5 sm:p-6" : "max-w-md p-8"} rounded-2xl bg-white shadow-sm ring-1 ring-slate-200`}>
         {children}
       </div>
     </main>
@@ -45,7 +46,7 @@ function phaseTitle({ phase, round }: ServerState): string {
   }
 }
 
-// Shell for every running phase. Chat, voting and results views fill it in slices 4 and 5.
+// Shell for the phases without their own view yet. Voting and results views fill it in slice 5.
 function Started({ state }: { state: ServerState }) {
   return (
     <div className="text-center">
@@ -72,7 +73,7 @@ function Started({ state }: { state: ServerState }) {
 }
 
 export default function App() {
-  const { status, state, error, join } = useSession();
+  const { status, state, error, messages, join, sendChat } = useSession();
 
   if (status === "idle" || status === "joining" || (status === "error" && !state)) {
     return (
@@ -92,6 +93,13 @@ export default function App() {
     return (
       <Card>
         <p className="text-center text-slate-500">Connecting…</p>
+      </Card>
+    );
+  }
+  if (state.phase === "DISCUSSION") {
+    return (
+      <Card wide>
+        <Discussion state={state} messages={messages} error={error} onSend={sendChat} />
       </Card>
     );
   }

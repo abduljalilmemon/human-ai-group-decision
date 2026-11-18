@@ -1,4 +1,5 @@
 """WebSocket endpoint and per-session fan-out. All payloads come from protocol.py."""
+import json
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -34,6 +35,12 @@ class ConnectionManager:
         except Exception:  # socket closed mid-send; its own handler cleans up
             log.debug("send failed for a closed socket")
 
+    async def send_all(self, session: LiveSession, payload: protocol.Payload) -> None:
+        """Send the same payload to every connected human in the session."""
+        for seat in session.seats:
+            if seat.token:
+                await self.send(seat.token, payload)
+
     async def send_state(self, session: LiveSession) -> None:
         """Send each connected human their own view of the session state."""
         for seat in session.seats:
@@ -44,6 +51,7 @@ class ConnectionManager:
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, token: str = ""):
     lobby = websocket.app.state.lobby
+    engine = websocket.app.state.engine
     manager: ConnectionManager = websocket.app.state.connections
     await websocket.accept()
 
@@ -63,9 +71,18 @@ async def websocket_endpoint(websocket: WebSocket, token: str = ""):
     try:
         await websocket.send_json(protocol.state(session, seat))
         while True:
-            await websocket.receive_text()
-            # chat and vote handling arrive in slices 4 and 5
-            await websocket.send_json(protocol.error("unsupported"))
+            try:
+                msg = json.loads(await websocket.receive_text())
+            except ValueError:
+                msg = None
+            if not isinstance(msg, dict):
+                reason = "invalid_message"
+            elif msg.get("type") == "chat":
+                reason = await engine.submit_chat(session, seat, msg.get("text"))
+            else:
+                reason = "unsupported"  # vote handling arrives in slice 5
+            if reason:
+                await websocket.send_json(protocol.error(reason))  # errors go to the sender only
     except WebSocketDisconnect:
         pass
     finally:

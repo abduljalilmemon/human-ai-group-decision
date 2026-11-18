@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type Phase = "WAITING" | "DISCUSSION" | "VOTING" | "ROUND_RESULT" | "FINAL";
 
@@ -12,6 +12,15 @@ export interface ServerState {
   players: string[];
   has_voted: boolean;
 }
+
+export interface ChatMessage {
+  id: number;
+  from: string; // player label
+  text: string;
+  sent_at: number; // epoch ms
+}
+
+export const MAX_CHAT_CHARS = 500; // mirrors the server limit
 
 export type Status = "idle" | "joining" | "connecting" | "connected" | "closed" | "error";
 
@@ -40,6 +49,8 @@ export function useSession() {
   const [status, setStatus] = useState<Status>(token ? "connecting" : "idle");
   const [state, setState] = useState<ServerState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const socket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -47,6 +58,7 @@ export function useSession() {
     setStatus("connecting");
     const scheme = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${scheme}://${location.host}/ws?token=${encodeURIComponent(token)}`);
+    socket.current = ws;
 
     ws.onopen = () => !disposed && setStatus("connected");
     ws.onmessage = (event) => {
@@ -54,6 +66,10 @@ export function useSession() {
       const msg = JSON.parse(event.data);
       if (msg.type === "state") {
         setState(msg as ServerState);
+        setError(null); // state arrives on phase changes; an old chat error no longer applies
+      } else if (msg.type === "message") {
+        const m: ChatMessage = { id: msg.id, from: msg.from, text: msg.text, sent_at: msg.sent_at };
+        setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
       } else if (msg.type === "error" && msg.reason === "unknown_token") {
         // e.g. the server restarted: the old seat is gone, so offer a fresh join.
         writeToken(null);
@@ -70,6 +86,7 @@ export function useSession() {
     };
     return () => {
       disposed = true;
+      if (socket.current === ws) socket.current = null;
       ws.close();
     };
   }, [token]);
@@ -89,5 +106,14 @@ export function useSession() {
     }
   }, []);
 
-  return { status, state, error, join };
+  // The server validates and may answer with an error; the message only appears once it is broadcast.
+  const sendChat = useCallback((text: string): boolean => {
+    const ws = socket.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    setError(null);
+    ws.send(JSON.stringify({ type: "chat", text }));
+    return true;
+  }, []);
+
+  return { status, state, error, messages, join, sendChat };
 }

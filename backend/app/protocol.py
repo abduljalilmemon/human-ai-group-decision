@@ -41,5 +41,10 @@ def state(session: "LiveSession", seat: "Seat", server_now: int | None = None) -
     }
 
 
+def message(message_id: int, from_label: str, text: str, sent_at: int) -> Payload:
+    """A chat line. Identical shape for every sender: only the public label identifies them."""
+    return {"type": "message", "id": message_id, "from": from_label, "text": text, "sent_at": sent_at}
+
+
 def error(reason: str) -> Payload:
     return {"type": "error", "reason": reason}

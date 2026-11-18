@@ -47,6 +47,7 @@ def assert_blind(payload, own_token: str | None = None):
 def all_payloads():
     yield protocol.join_response(TOKENS["Player A"]), TOKENS["Player A"]
     yield protocol.error("unsupported"), None
+    yield protocol.message(1, "Player C", "hi there", 1_990_000), None
     for phase in ("WAITING", "DISCUSSION", "VOTING", "ROUND_RESULT", "FINAL"):
         session = make_session(phase)
         for seat in session.seats:

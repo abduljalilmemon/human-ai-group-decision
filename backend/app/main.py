@@ -24,8 +24,11 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 async def lifespan(app: FastAPI):
     await create_tables()
     connections = ws.ConnectionManager()
-    engine = SessionEngine(settings.experiment, SessionLocal, broadcast=connections.send_state)
+    engine = SessionEngine(
+        settings.experiment, SessionLocal, broadcast=connections.send_state, send_all=connections.send_all
+    )
     app.state.connections = connections
+    app.state.engine = engine
     app.state.lobby = Lobby(settings, SessionLocal, on_start=engine.start)
     yield
     await app.state.lobby.shutdown()
