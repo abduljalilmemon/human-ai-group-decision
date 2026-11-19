@@ -8,7 +8,9 @@ Built as a take-home assessment for the Center for Humans and Machines (MPIB).
 
 ## Demo video
 
-A 40-second narrated intro: [docs/demo.mp4](docs/demo.mp4). The app screenshots in it come from a real session of this project.
+![Demo of the Human-AI Group Decision platform](docs/demo.gif)
+
+A 40-second intro, shown here without sound. The app screenshots in it come from a real session of this project.
 
 ## Quick start
 
