@@ -6,6 +6,10 @@ Built as a take-home assessment for the Center for Humans and Machines (MPIB).
 
 **Blind condition.** Participants must not be able to tell whether the others are human or AI. The server never sends a participant's type to any client. Every outbound payload is built in one file (`backend/app/protocol.py`) from an explicit list of public fields, and no endpoint exposes type. Beyond hiding the label, the app removes behavioural tells. The waiting room shows no counts and always waits a random time. Seat labels are shuffled per session. AI chat goes through the same path as human chat, with human-like delays, short casual lines, no reply to every message and a filter on phrases like "as an AI". AI votes arrive after a random delay. Every message looks and animates the same.
 
+## Demo video
+
+A 40-second narrated intro: [docs/demo.mp4](docs/demo.mp4). The app screenshots in it come from a real session of this project.
+
 ## Quick start
 
 Requires Docker with Compose v2.
