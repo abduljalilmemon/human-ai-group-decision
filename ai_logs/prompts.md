@@ -4,7 +4,6 @@
 - Model: claude-opus-5-5
 
 ```text
-<pasted_content id="0d0a">
 I'm doing a 2-hour take-home assessment. The full brief is in docs/brief.md. Read it, plus the rules file in this repo, before answering.
 
 Do NOT write any code yet. Propose a plan covering:
@@ -18,7 +17,6 @@ Do NOT write any code yet. Propose a plan covering:
 Constraints: FastAPI + React + MongoDB + Docker Compose, no auth, no dependencies beyond what's needed, minimal and pragmatic.
 
 Finally, list the open decisions (tie-breaking, intermediate feedback after round 1, final-result rule, AI agent behavior, player disconnects) with two options each, trade-offs, and your recommended default. Keep the whole answer concise.
-</pasted_content id="0d0a">
 ```
 
 ## Prompt 2 - 2026-11-17 21:13
@@ -38,7 +36,6 @@ Follow CLAUDE.md and PLAN.md. Implement ONLY slice 1: Scaffold, Docker, config, 
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\.claude\settings.json in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="e4fd">
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 2: Join and waiting room.
 Before coding, state your assumptions and any ambiguity.
 Mark slice 1 as Done in the PLAN.md progress tracker.
@@ -46,7 +43,6 @@ Build backend/app/protocol.py first, as the only place outbound payloads are bui
 Remember: sessionStorage token, no participant counts in the waiting room, shuffled labels, randomized wait in every condition.
 Run the blind-condition-check skill before finishing.
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
-</pasted_content id="e4fd">
 ```
 
 ## Prompt 4 - 2026-11-18 01:04
@@ -57,7 +53,6 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\PLAN.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="9c90">
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 3: Session engine and countdown.
 Before coding, state your assumptions and any ambiguity.
 Mark slice 2 as Done in the PLAN.md progress tracker.
@@ -66,7 +61,6 @@ Add backend/tests/test_engine.py for the transitions, and backend/tests/test_pro
 For verification, temporarily use short durations in config.yml (for example 10 and 5 seconds) and restore the file afterwards.
 Run the blind-condition-check skill before finishing.
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
-</pasted_content id="9c90">
 ```
 
 ## Prompt 5 - 2026-11-18 01:34
@@ -77,7 +71,6 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\ai_logs\prompts.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="6b1c">
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 4: Real-time chat.
 Before coding, state your assumptions and any ambiguity.
 Mark slice 3 as Done in the PLAN.md progress tracker.
@@ -86,7 +79,6 @@ Add backend tests for the chat rules (rejected outside DISCUSSION, empty, too lo
 For verification, temporarily use short durations in config.yml and restore the file afterwards.
 Run the blind-condition-check skill before finishing (item 7 now applies: no typing indicators, identical rendering for every message).
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
-</pasted_content id="6b1c">
 ```
 
 ## Prompt 6 - 2026-11-18 14:58
@@ -97,7 +89,6 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\config.yml in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="ecdb">
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 5: Voting and results.
 Before coding, state your assumptions and any ambiguity.
 Mark slice 4 as Done in the PLAN.md progress tracker.
@@ -109,7 +100,6 @@ Add backend/tests/test_voting.py covering: clear majority, tie resolved by Round
 For verification, temporarily use short durations in config.yml and restore the file afterwards.
 Run the blind-condition-check skill before finishing.
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
-</pasted_content id="ecdb">
 ```
 
 ## Prompt 7 - 2026-11-18 19:03
@@ -120,7 +110,6 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\ai_logs\prompts.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="b461">
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 6: AI agent and blind defences.
 Before coding, state your assumptions and any ambiguity. Use the claude-api skill and check the current model ID and SDK usage before writing llm.py.
 Mark slice 5 as Done in the PLAN.md progress tracker.
@@ -132,7 +121,6 @@ Add backend/tests/test_blind.py: no payload type (join response, state, message,
 For verification, temporarily use short durations in config.yml and restore the file afterwards.
 Run the blind-condition-check skill before finishing; every item should now apply.
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
-</pasted_content id="b461">
 ```
 
 Note (slice 6): skills used: `claude-api` (bundled Claude Code skill) to confirm the model ID `claude-haiku-5-5`
@@ -148,14 +136,12 @@ backend/app/agents/llm.py, checked against the installed `anthropic==2.10.0`; an
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\.env in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="b461">
 Follow CLAUDE.md and PLAN.md. This is a small extension to slice 6, not a new slice. Implement ONLY a Gemini provider.
 Before coding, state your assumptions and any ambiguity, and check the current Google Gemini SDK documentation for the correct package and call pattern for a plain short text reply. The model ID to use is gemini-3.5-flash-lite (older 2.5 models are retired for new users; the API recommends the newer Interactions API, so follow whichever approach the current docs recommend, as long as it stays simple).
 Add backend/app/agents/gemini.py implementing the same agent interface as llm.py, with the same persona prompt, the same hard timeout (ai.reply_timeout_seconds), the same output filter, small max output tokens, and the same fallback to the scripted agent on timeout, API error, rate limit, filtered output or missing key. Treat other players' chat text as untrusted content.
 Extend config.yml validation so ai.provider accepts anthropic, gemini or scripted, and set the gemini model ID in config. Read GEMINI_API_KEY from the environment, add it (empty) to .env.example, and pass it through docker-compose without committing any secret. Log a WARNING with the reason whenever any LLM agent falls back to scripted (never log keys or full prompts).
 Add tests with a mocked API for the gemini agent and its fallback paths, and keep all existing tests passing.
 Do not change anything else. Run the blind-condition-check skill before finishing. Show me how to verify. Stop when done.
-</pasted_content id="b461">
 ```
 
 ## Prompt 9 - 2026-11-18 20:21
@@ -274,7 +260,6 @@ against the installed `google-genai==3.5.0`. Skill used: `blind-condition-check`
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\config.yml in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="b502">
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 7: Reconnect and disconnects.
 Before coding, state your assumptions and any ambiguity.
 Mark slice 6 as Done in the PLAN.md progress tracker.
@@ -284,7 +269,6 @@ Add backend tests for replay (all phases), seat release with grace period (inclu
 For verification, temporarily use short durations in config.yml and restore the file afterwards.
 Run the blind-condition-check skill before finishing (replayed payloads must also come only from protocol.py).
 Do not start other slices. Run the Verify checks and show me how to verify. Stop when done.
-</pasted_content id="b502">
 ```
 
 ## Prompt 12 - 2026-11-18 22:25
@@ -297,13 +281,12 @@ Do not start other slices. Run the Verify checks and show me how to verify. Stop
 
 ## Prompt 13 - 2026-11-18 22:33
 - Tool: Claude Code (VS Code extension)
-- Model: UNKNOWN - fill in
+- Model: claude-opus-5-5
 
 ```text
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\ai_logs\prompts.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="6845">
 Re-read CLAUDE.md and PRODUCT.md first.
 Follow CLAUDE.md and PLAN.md. Implement ONLY slice 8: UI polish. Use the installed Impeccable design skill for visual direction; CLAUDE.md rules win on any conflict, and the blind condition wins every design trade-off.
 Before coding, state your assumptions and your design direction in a few lines (palette with one accent color, typography, spacing, motion).
@@ -313,7 +296,6 @@ Screens and states to cover: Join, Waiting room (no counts or progress), Discuss
 Rules: every message renders identically for every sender except your own (own messages on the right). Player colors are assigned by label only. No typing indicators and no special styling or timing for AI messages. Respect prefers-reduced-motion. Keep contrast accessible (WCAG 2.2 AA), add visible focus states, full keyboard operation, and aria-live for new chat messages without announcing the countdown every second. Layout must work at desktop and mobile widths, with desktop as the main target.
 Run the Impeccable checks (detector and any critique/audit step) and fix what they flag. Run the blind-condition-check skill before finishing (item 7 applies fully). Make sure the frontend still builds and type-checks.
 Time-box: keep it simple and finish in one pass. Do not start other slices. Show me how to verify. Stop when done.
-</pasted_content id="6845">
 ```
 
 ## Prompt 14 - 2026-11-18 22:49
@@ -321,7 +303,6 @@ Time-box: keep it simple and finish in one pass. Do not start other slices. Show
 - Model: claude-opus-5-5
 
 ```text
-<pasted_content id="6845">
 Re-read CLAUDE.md and PRODUCT.md first.
 This is a second polish pass on slice 8. The current UI is clean but too plain; the goal is a distinctly polished, animated interface that makes a strong first impression, while keeping the blind condition intact.
 Touch only frontend/src/** (and the Tailwind config / package.json for the animation library). Do not change the protocol, backend, or tests.
@@ -332,7 +313,6 @@ Before coding, state your design direction in a few lines. Then:
 Hard rules: every message uses the same entrance animation and timing regardless of sender (own messages on the right); no typing indicators, presence dots, or online status; player colors by label only; nothing in copy or motion hints at who is human or AI; no animation may delay or hide information; respect prefers-reduced-motion; keep WCAG 2.2 AA contrast, focus states and keyboard operation; aria-live for new messages without announcing the countdown every second; keep it fast (no layout thrash).
 Run the Impeccable checks again and fix what they flag, run the blind-condition-check skill, and make sure the frontend builds, type-checks, and the backend tests still pass.
 Time-box about 45 minutes. Do not start other slices. Show me how to verify. Stop when done.
-</pasted_content id="6845">
 ```
 
 ## Prompt 15 - 2026-11-18 22:50
@@ -435,7 +415,6 @@ Time-box about 45 minutes. Do not start other slices. Show me how to verify. Sto
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\PRODUCT.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="6845">
 Re-read CLAUDE.md and PRODUCT.md first (including the new Visual Direction section).
 This is a second polish pass on slice 8. The goal is a distinctly premium, animated dark-glass interface that makes a strong first impression, while keeping the blind condition intact. The user explicitly chose this direction, so where the design skill's default taste rules conflict, follow the user; still avoid clichÃ©s such as gradient-filled text.
 Touch only frontend/src/** (and the Tailwind config / package.json for an animation library). Do not change the protocol, backend, or tests.
@@ -446,7 +425,6 @@ Before coding, state your design direction in a few lines. Then:
 Hard rules: every message uses the same entrance and timing regardless of sender (own messages on the right); no typing indicators, presence dots, online status, sparkle icons, or "AI"/"assistant" wording; player colors by label only; nothing in copy or motion hints at who is human or AI; no animation may delay or hide information; respect prefers-reduced-motion and prefers-reduced-transparency; text over glass keeps WCAG 2.2 AA contrast with a solid fallback where backdrop-filter is unsupported; visible focus states and full keyboard operation; aria-live for new messages without announcing the countdown every second; limit blurred layers and animate only transform and opacity so several tabs stay smooth.
 Run the Impeccable checks again and fix what they flag, run the blind-condition-check skill, and make sure the frontend builds, type-checks, and the backend tests still pass.
 Time-box about 45 minutes. Do not start other slices. Show me how to verify. Stop when done.
-</pasted_content id="6845">
 ```
 
 ## Prompt 18 - 2026-11-18 23:50
@@ -501,4 +479,20 @@ Time-box about 45 minutes. Do not start other slices. Show me how to verify. Sto
   1. Does chat need to sit inside a card at all? Or should discussion be the full-bleed stage over the orbs, with the ring as the only chrome, so the card stops being a crutch?
   2. PRODUCT.md asks for a neutral research instrument. Could a glowing, animated, "premium" first impression change how warmly or how fast participants chat, adding a design effect you'd have to report as a confound?
 </agent-message>
+```
+
+## Prompt 19 - 2026-11-19 00:21
+- Tool: Claude Code (VS Code extension)
+- Model: claude-opus-5-5
+
+```text
+Re-read CLAUDE.md first.
+Follow CLAUDE.md and PLAN.md. Implement ONLY slice 9: README, AI log and final check.
+Before coding, state your assumptions and any ambiguity.
+Mark slices 8 and 9 as Done in the PLAN.md progress tracker.
+Write README.md (concise but complete). Only state things that are true in the code; do not invent numbers, results or claims. Sections: what it is; the blind condition in one paragraph; quick start (`docker compose up --build`, URL, optional .env keys, the APP_PORT option); how to switch conditions in config.yml (table of the three conditions, restart needed); how to switch AI providers (anthropic | gemini | scripted, keys, scripted fallback with WARNING in the logs, models are config settings because names retire); architecture overview (a short diagram or list: FastAPI, WebSockets, protocol.py as the single payload builder, engine, lobby, agents, PostgreSQL, one container serving the built React app); the experiment flow and design decisions from CLAUDE.md (Round 2 decides, tie-break, anonymous Round 1 tally, abstentions, disconnect handling and the 10 s seat grace period); the blind-condition measures (each leak and its defence); testing (how to run pytest); AI tooling and process (Claude Code in VS Code with the model from CLAUDE.md, the claude-api skill, my own blind-condition-check skill, Impeccable for the UI pass installed locally with telemetry off, the Gemini provider, how prompts are logged by the hook, and that the planning chat is logged in ai_logs); UI notes (motion is the only library, loaded via LazyMotion; accessibility and reduced-motion/reduced-transparency fallbacks; the trade-off that a premium look could confound a real study, so a neutral theme would be preferable for actual research); known limitations (in-memory sessions lost on restart, no auth, no migrations, empty waiting sessions left in the DB, a tab that joins but never opens a socket keeps its seat, the 10 s grace is a constant, scripted agent is less convincing); and time spent as the text TODO-TIME (I will fill in the real number).
+Check ai_logs/prompts.md: remove stray <\pasted_content ...> tags and replace "Model: UNKNOWN - fill in" with claude-opus-5-5. Do not rewrite, reorder, summarize or remove any prompt text beyond that. Do not add invented prompts.
+Check the repo for secrets (.env must not be tracked, .env.example has empty values) and that .gitignore covers .env, node_modules, and the local Impeccable files.
+Run a fresh-clone check: clone the repo into a new empty temporary folder outside this project, run `docker compose up --build` there with no .env (on a free host port via APP_PORT if needed), confirm the app loads and /api/health works, start a session in each of the three conditions as far as you can without a browser (for example by joining over the API and WebSocket), confirm the scripted fallback works without an API key, then run pytest and tear everything down. Report exactly what you verified and what you could not.
+Do not change application code. Do not start other slices. Show me how to verify. Stop when done.
 ```

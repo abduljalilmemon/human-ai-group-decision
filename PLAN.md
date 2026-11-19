@@ -341,5 +341,5 @@ If time runs short, cut in this order: UI animations, extra blind defences beyon
 | 5 | Voting and results | Done |
 | 6 | AI agent and blind defences | Done |
 | 7 | Reconnect and disconnects | Done |
-| 8 | UI polish | Not started |
-| 9 | README, AI log and final check | Not started |
+| 8 | UI polish | Done |
+| 9 | README, AI log and final check | Done |
