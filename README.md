@@ -8,7 +8,7 @@ Built as a take-home assessment for the Center for Humans and Machines (MPIB).
 
 ## Demo video
 
-![Demo of the Human-AI Group Decision platform](docs/demo.gif)
+<img src="docs/demo.gif" alt="Demo of the Human-AI Group Decision platform" width="100%">
 
 A 40-second intro, shown here without sound. The app screenshots in it come from a real session of this project.
 
