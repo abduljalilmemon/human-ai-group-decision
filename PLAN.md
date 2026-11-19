@@ -1,5 +1,12 @@
 # Development Plan: Multi-Participant Human-AI Experiment Platform
 
+**Summary of the task.** Build a small experiment platform where three participants try to agree on a
+"Decision Maker". Any seat can be a person or an AI agent, and nobody is told which (blind condition).
+The group chats for two rounds of roughly a minute and votes after each round. A `config.yml` selects the
+mix: 3 humans, 2 humans + 1 AI, or 1 human + 2 AI. Stack: React frontend, FastAPI backend, PostgreSQL,
+all started with one Docker command. Hand-in is a public repo with a README covering decisions and
+trade-offs, plus an AI usage log with every prompt and the exact models and tools used.
+
 This plan is self-contained. Follow it slice by slice, with or without an AI coding assistant, starting from the repo root.
 Rules for the assistant live in CLAUDE.md; if the two ever disagree, CLAUDE.md wins.
 
@@ -75,7 +82,6 @@ then copies `frontend/dist` into the Python image, where FastAPI serves it (API 
 ├── PLAN.md
 ├── README.md
 ├── ai_logs/prompts.md
-├── docs/brief.md
 ├── tools/log_prompt.py
 ├── backend/
 │   ├── requirements.txt
@@ -343,4 +349,4 @@ If time runs short, cut in this order: UI animations, extra blind defences beyon
 | 7 | Reconnect and disconnects | Done |
 | 8 | UI polish | Done |
 | 9 | README, AI log and final check | Done |
-| 10 | Slice 10: visuals (aurora background, six-animal avatars dealt by seeded shuffle, Dark/Light/Auto theme), frontend/src only, branch visuals | In progress |
+| 10 | Slice 10: visuals (aurora background, six-animal avatars dealt by seeded shuffle, Dark/Light/Auto theme), frontend/src only, branch visuals | Done |

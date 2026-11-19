@@ -499,13 +499,12 @@ Do not change application code. Do not start other slices. Show me how to verify
 
 ## Prompt 20 - 2026-11-19 02:02
 - Tool: Claude Code (VS Code extension)
-- Model: claude-opus-5-5 - fill in
+- Model: claude-opus-5-5
 
 ```text
 <ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\frontend\src\avatars\animals.ts in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
 
-<pasted_content id="01f8">
 Slice 10 (visuals). Do all of the following in order. Read CLAUDE.md, PRODUCT.md and PLAN.md first.
 
 STEP 0 - Setup
@@ -567,6 +566,74 @@ STEP 5 - Report (do not commit; I will review first)
 List files changed, what you verified, anything you skipped, and any README notes I must add
 (design confound, motion usage, accessibility fallbacks, theme stored locally).
 Time-box about 45 minutes.
-</pasted_content id="01f8">
 ```
 
+
+## Prompt 21 - 2026-11-19 02:54
+- Tool: Claude Code (VS Code extension)
+- Model: claude-opus-5-5
+
+```text
+<ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\PRODUCT.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+
+Housekeeping slice. Read CLAUDE.md first. Do not change application code (backend/app, frontend/src). Do not start other slices.
+Before coding, run `git status`. If there are uncommitted changes other than ai_logs/prompts.md, stop and tell me.
+
+1) Remove the assessment brief from the public repo
+- Delete docs/brief.md (use `git rm`). If docs/ ends up empty, that is fine.
+- Remove every reference to it: CLAUDE.md (line "Brief: docs/brief.md"), PRODUCT.md (assessment brief line), PLAN.md (the file tree).
+- Put a short summary IN YOUR OWN WORDS at the top of PLAN.md instead: a 3-participant human/AI group decision experiment,
+  blind condition, 2 rounds of about a minute, votes for a Decision Maker, config.yml for 3 humans / 2 humans + 1 AI / 1 human + 2 AI,
+  React + FastAPI + Postgres, Docker with one command, public repo, README with decisions and trade-offs, AI usage log with all prompts
+  and the exact models and tools. Do not copy sentences from the brief.
+- Do NOT edit ai_logs/prompts.md for this: its history may mention the brief and that is fine.
+
+2) Fix ai_logs/prompts.md (touch only the Prompt 20 entry)
+- In the Prompt 20 entry only: remove the opening tag line `<\pasted_content id="01f8">` and the closing tag line `<\/pasted_content id="01f8">`,
+  and change `- Model: claude-opus-5-5 - fill in` to `- Model: claude-opus-5-5`.
+- Do not change, reorder, summarize or delete any other text. Earlier entries (for example Prompt 19) mention those same strings
+  inside quoted prompt text, so leave them exactly as they are.
+- Check afterwards: no `<\pasted_content` tag lines remain except inside the quoted text of Prompt 19, and no `UNKNOWN` or `fill in` Model lines remain.
+
+3) Fix the logging hook
+- In .claude/settings.json change the hook command to: python tools/log_prompt.py --model claude-opus-5-5
+- Keep the file valid JSON (check with `python -m json.tool .claude/settings.json`). Do not touch tools/log_prompt.py.
+- This very prompt will be logged by the old hook. When you are done, check the newest entry in ai_logs/prompts.md and fix its Model line
+  to claude-opus-5-5 if it says UNKNOWN or "fill in", and strip any pasted_content tag lines from that one entry only.
+
+4) Update README.md for slice 10 (only state what is true in the code; verify each claim against the files; no invented numbers)
+- "nine vertical slices" becomes ten.
+- Near the top of Quick start, add 2 lines: without an API key the AI seats use the scripted agent (canned lines), so for realistic AI chat add
+  GEMINI_API_KEY (or ANTHROPIC_API_KEY) to .env; and after changing .env run `docker compose up -d --force-recreate app`
+  because `docker compose restart app` does not re-read .env.
+- Architecture and design decisions: add the avatar seed. The server creates a random avatar_seed per session (lobby.py), sends the same value
+  to every player in `state` once the session has started (null in the waiting room), replays it on reconnect, and logs it as an
+  `avatar_dealt` event. It is never derived from the DB id, seat order, join order or participant type. This was a deliberate small exception
+  to "frontend only" for slice 10.
+- Blind-condition table: add a row for avatars and theme. Avatar animals are dealt on the client from avatar_seed and the label only,
+  with the same animation and timing for every animal, and the message-delivery flare is the same for every sender. The theme (Dark, Light, Auto)
+  is local to the browser (localStorage) and never sent anywhere.
+- UI notes: replace "dark glass with one accent colour" with the real current look (aurora background, glass cards, six animal avatars,
+  Dark / Light / Auto theme). Say that the avatar and background animation is pure CSS animating transform and opacity, and that `motion`
+  is still the library used for screen transitions and banners. Keep the accessibility lines and add: avatars have an aria-label
+  like "Player B avatar" with decorative art hidden from screen readers, reduced-motion stops all avatar and background animation,
+  reduced-transparency gives solid cards, text meets WCAG AA in both themes (the agent measured it in slice 10; say "calculated", not "audited").
+  Keep and update the design-confound trade-off: a strong visual style could itself influence behavior, and random avatars spread that effect
+  across seats and conditions.
+- Testing: add `cd frontend && npm test` (vitest, tests for the avatar deal). Do not state test counts.
+- AI tooling and process: mention slice 10 and that vitest was added as a dev-only dependency. In the Planning chat bullet, point to
+  `ai_logs/planning-chat.md`, but KEEP the text TODO-PLANNING-CHAT there until that file exists (I will add it).
+- Known limitations: add one line that there is no rate limit on joins or chat messages.
+- Leave TODO-TIME exactly as it is. I will fill it in.
+
+5) PLAN.md tracker
+- Mark slice 10 as Done.
+
+Checks before you stop:
+- `grep -rn "brief.md" --include=*.md . ` shows no references outside ai_logs/.
+- `grep -n "nine\|one accent" README.md` shows nothing stale.
+- python -m json.tool .claude/settings.json passes.
+- Run the backend tests and the frontend build once. Both must still pass.
+- Do not commit. Show `git status` and `git diff --stat`, then list anything you were unsure about.
+```

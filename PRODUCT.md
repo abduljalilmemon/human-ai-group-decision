@@ -40,7 +40,7 @@ A research instrument, not a consumer chat app. What sets it apart is that the b
 No brand identity, logo, or name beyond the neutral experiment framing. Voice is neutral and plain, like a research instrument: instructions are clear and short, and the copy never steers votes or hints at who is human or AI.
 
 ## Evidence on Hand
-- Assessment brief: `docs/brief.md`. Build plan: `PLAN.md`. Experiment parameters: `config.yml`.
+- Build plan: `PLAN.md`. Experiment parameters: `config.yml`.
 - No testimonials, users, study data, or institutional endorsements exist. Do not invent any, and do not imply MPIB branding or affiliation in the UI.
 
 ## Product Principles

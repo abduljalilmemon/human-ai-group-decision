@@ -1,7 +1,7 @@
 # Project: 3-participant human/AI group decision experiment
 
 Take-home assessment for MPIB Center for Humans and Machines (Student Research Assistant, Full-Stack).
-Brief: docs/brief.md. Build plan: PLAN.md (follow it slice by slice). Target effort: about 4 hours (per the email).
+Build plan: PLAN.md (follow it slice by slice). Target effort: about 4 hours (per the email).
 Design context: PRODUCT.md (used by the design skill during the UI slice).
 Priorities, in order: (1) working core flow, (2) clean architecture, (3) README + AI log, (4) UI polish.
 
