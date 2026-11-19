@@ -10,6 +10,9 @@ Built as a take-home assessment for the Center for Humans and Machines (MPIB).
 
 Requires Docker with Compose v2.
 
+Without an API key, AI seats use the scripted agent (canned lines). For realistic AI chat, put `GEMINI_API_KEY` (the default provider) in `.env`, or `ANTHROPIC_API_KEY` with `provider: anthropic` in `config.yml`.
+After changing `.env`, run `docker compose up -d --force-recreate app`: `docker compose restart app` does not re-read `.env`.
+
 ```bash
 docker compose up --build
 ```
@@ -87,6 +90,7 @@ PostgreSQL  (sessions, participants, messages, votes, events)
 - The server owns all timers and phase changes. Every `state` message carries `phase_ends_at`, `server_now` and `remaining_ms`, and the client only renders it.
 - Live session state lives in memory in the single process, and the database is the record. Tables are created at startup (no migration tool).
 - Phases: `WAITING → DISCUSSION (1) → VOTING (1) → ROUND_RESULT → DISCUSSION (2) → VOTING (2) → FINAL`. Each change is written to `events`.
+- **Avatar seed.** `lobby.py` creates a random `avatar_seed` per session (`secrets.token_hex`). Once the session has started, every player gets the same value in `state` (it is `null` in the waiting room), reconnects replay it, and it is logged as an `avatar_dealt` event. It is never derived from the DB id, seat order, join order or participant type. This was a deliberate small exception to "frontend only" for slice 10.
 - There is no export or admin endpoint. Researchers query the data directly, e.g. `docker compose exec db psql -U postgres -d experiment`.
 
 ## Experiment flow and design decisions
@@ -124,6 +128,7 @@ PostgreSQL  (sessions, participants, messages, votes, events)
 | Instant AI votes | Each vote lands at a random point between 25% and 65% of the voting window. |
 | Prompt injection via chat | Other players' chat goes into the prompt as untrusted content inside `<chat>` tags, with angle brackets neutralised. |
 | UI differences | Every message has the same component, styling, entrance animation and timing. There are no typing indicators. |
+| Avatars and theme | Animals are dealt on the client from `avatar_seed` and the player labels only. Every animal uses the same animation and timing, and the flare when a message is delivered is the same for every sender. The theme (Dark, Light, Auto) is local to the browser (`localStorage`) and never sent anywhere. |
 
 Human and AI chat share one `submit_chat()` path, and votes share one `submit_vote()` path.
 
@@ -139,31 +144,34 @@ Locally (Python 3.12): `pip install -r backend/requirements.txt`, then `cd backe
 
 They cover config validation, the phase state machine, chat rules, voting and tie-breaks, agent behaviour and the output filter, the Gemini adapter, reconnect replay, and the blind-condition checks on every payload.
 
+Frontend tests (vitest, for the avatar deal): `cd frontend && npm test`.
+
 ## AI tooling and process
 
 - **Tool and model:** Claude Code (VS Code extension), model `claude-opus-5-5`.
-- **Process:** `PLAN.md` splits the build into nine vertical slices, done one at a time, each with its own Verify checks. `CLAUDE.md` holds the standing rules for the assistant (hard rules for the blind condition, stack, working style).
+- **Process:** `PLAN.md` splits the build into ten vertical slices, done one at a time, each with its own Verify checks. Slice 10 added the visuals (aurora background, animal avatars, theme switch); `vitest` was added for it as a dev-only dependency. `CLAUDE.md` holds the standing rules for the assistant (hard rules for the blind condition, stack, working style).
 - **Skills:**
   - `claude-api` (bundled with Claude Code): used to confirm the current Anthropic model ID and SDK usage before writing `agents/llm.py`.
   - `blind-condition-check` (my own, `.claude/skills/blind-condition-check/SKILL.md`): an 8-point checklist run after every slice that touched payloads, agents, the lobby or the UI.
   - **Impeccable** design skill, used only for the UI polish slice. It is installed locally (gitignored, not part of the repo) with telemetry off. Its design context is in `PRODUCT.md`.
 - **Gemini provider:** added as a second LLM provider (`agents/gemini.py`). It shares the persona, filter, timeout and fallback with the Anthropic agent, and was written against the installed `google-genai` 3.5.0 SDK.
 - **Prompt log:** every prompt is logged automatically to `ai_logs/prompts.md` by a `UserPromptSubmit` hook (`.claude/settings.json` → `tools/log_prompt.py`), with timestamp, tool and model. Notes on skills used are added below the relevant prompts.
-- **Planning chat:** the planning chat held before coding is logged in `ai_logs/`. TODO-PLANNING-CHAT: add the file.
+- **Planning chat:** the planning chat held before coding is logged in `ai_logs/planning-chat.md`. TODO-PLANNING-CHAT: add the file.
 
 ## UI notes
 
-- React with small components and logic in hooks (`useSession.ts`). Tailwind CSS, no router and no component library. The look is dark glass with one accent colour.
-- **`motion` is the only animation library.** It is loaded through `LazyMotion` with the `domAnimation` feature set (strict mode) to keep the bundle small. CSS transitions and keyframes cover the rest.
-- **Accessibility:** the chat is a `role="log"` live region, the countdown is a `role="timer"` with a separate polite announcement, status and error messages use `role="status"`/`role="alert"`, and there are visible focus rings.
-- **Reduced motion:** `prefers-reduced-motion` turns off CSS animations and transitions, and `MotionConfig reducedMotion="user"` does the same for motion.
-- **Reduced transparency:** `prefers-reduced-transparency`, or a browser without `backdrop-filter`, gets solid panels instead of glass, and the background orbs are hidden.
-- **Trade-off:** the polished, "premium" look suits a demo, but in a real study a striking interface could itself influence how people behave. A plain, neutral theme would be preferable for actual research.
+- React with small components and logic in hooks (`useSession.ts`). Tailwind CSS, no router and no component library. The look is an animated aurora background behind glass cards, six animal avatars, and a Dark / Light / Auto theme switch (Auto follows the device setting).
+- **Animation:** the avatar and background animation is pure CSS that animates only `transform` and `opacity`. `motion` is still the only animation library, used for screen transitions and banners. It is loaded through `LazyMotion` with the `domAnimation` feature set (strict mode) to keep the bundle small.
+- **Accessibility:** the chat is a `role="log"` live region, the countdown is a `role="timer"` with a separate polite announcement, status and error messages use `role="status"`/`role="alert"`, and there are visible focus rings. Each avatar has an `aria-label` such as "Player B avatar", and its decorative art is hidden from screen readers. Text contrast meets WCAG AA in both themes (calculated during slice 10, including glass over the brightest point of the background).
+- **Reduced motion:** `prefers-reduced-motion` turns off CSS animations and transitions and stops all avatar and background animation, and `MotionConfig reducedMotion="user"` does the same for motion.
+- **Reduced transparency:** `prefers-reduced-transparency`, or a browser without `backdrop-filter`, gets solid cards instead of glass, and the background orbs are hidden.
+- **Trade-off:** the strong visual style suits a demo, but in a real study it could itself influence how people behave. Avatars are dealt at random per session, which spreads any effect of a given animal across seats and conditions instead of tying it to one; a plain, neutral theme would still be preferable for actual research.
 
 ## Known limitations
 
 - Live session state is in memory in a single backend process. A server restart ends running sessions, and their tokens stop working.
 - No authentication: anyone with the URL can join.
+- No rate limit on joins or chat messages.
 - No database migrations: tables are created at startup.
 - Waiting sessions that never fill are left in the database with status `waiting`.
 - A tab that joins but never opens a WebSocket keeps its waiting-room seat. The 10 s release only starts when a socket closes.

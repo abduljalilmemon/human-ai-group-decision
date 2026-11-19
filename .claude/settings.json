@@ -3,7 +3,7 @@
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "python tools/log_prompt.py" }
+          { "type": "command", "command": "python tools/log_prompt.py --model claude-opus-5-5" }
         ]
       }
     ]
