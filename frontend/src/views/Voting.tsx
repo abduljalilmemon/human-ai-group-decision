@@ -72,7 +72,7 @@ export default function Voting({ state, error, onVote }: Props) {
                     <Check />
                   </span>
                 )}
-                <Avatar label={label} size="md" />
+                <Avatar label={label} size="lg" />
                 <span className="text-sm font-semibold text-ink sm:text-base">
                   {label}
                   {label === state.you && <span className="label mt-1 block">You</span>}

@@ -317,6 +317,38 @@ def test_a_replaced_tab_closing_does_not_start_a_release():
     assert lobby.find(asyncio.run(main())) is not None and db.deleted == []
 
 
+# --- Avatar seed: one random value per session, the same for every seat and every reconnect ------
+
+def test_avatar_seed_is_present_identical_across_seats_and_stable_on_reconnect():
+    s = make_session(DISCUSSION, 1)
+    seeds = {protocol.state(s, seat)["avatar_seed"] for seat in s.seats}  # includes the AI seat's view
+    assert seeds == {s.avatar_seed} and s.avatar_seed
+    s.chat = [ChatRecord(1, A, "hi", 10)]
+    s.phase, s.round = VOTING, 2  # later phase, then a reconnect
+    assert protocol.replay(s, s.seats[0])[0]["avatar_seed"] == s.avatar_seed
+
+
+def test_avatar_seed_hidden_in_the_waiting_room():
+    s = make_session(WAITING, 0)
+    assert protocol.state(s, s.seats[0])["avatar_seed"] is None
+
+
+def test_lobby_seed_is_random_per_session_and_logged_at_start():
+    lobby, db, started = make_lobby(humans=1)
+
+    async def main():
+        await lobby.join()
+        await lobby.join()  # lands in a second session
+        await asyncio.sleep(0.05)
+
+    asyncio.run(main())
+    first, second = started
+    assert first.avatar_seed != second.avatar_seed
+    assert first.avatar_seed not in (str(first.id), str(second.id))
+    logged = [e.payload["seed"] for e in db.of(Event) if e.type == "avatar_dealt"]
+    assert logged == [first.avatar_seed, second.avatar_seed]
+
+
 # --- A disconnected human does not stop the session ----------------------------------------------
 
 def test_disconnected_human_abstains_and_others_finish():

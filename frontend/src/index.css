@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /*
- * Dark glass. One accent (indigo), which glows on focus and on primary actions.
- * Player tints are keyed by label letter only, never by participant type.
- * Contrast was checked at the worst case: glass over the brightest point of a glow orb.
+ * Frosted glass over an aurora. One accent (indigo), which glows on focus and on primary actions.
+ * Two themes on <html data-theme>: dark (the @theme defaults below) and light (overrides in base).
+ * Avatar colors come from the dealt animal only, never from participant type.
+ * Contrast was checked at the worst case: glass over the brightest point of a blob, in both themes.
  */
 @theme {
   --color-canvas: oklch(16% 0.035 265); /* ink-navy page */
@@ -11,8 +12,9 @@
   --color-glass-solid: oklch(22% 0.03 265); /* fallback: no blur, or reduced transparency */
   --color-surface: oklch(100% 0 0 / 0.06); /* inner glass: inputs, cards, chips */
   --color-raised: oklch(100% 0 0 / 0.09); /* others' chat bubbles */
+  --color-well: oklch(0% 0 0 / 0.14); /* the chat log */
   --color-ink: oklch(96% 0.008 265);
-  --color-muted: oklch(78% 0.02 265); /* >= 5:1 on every glass layer */
+  --color-muted: oklch(78% 0.02 265); /* >= 4.5:1 on every glass layer */
   --color-line: oklch(100% 0 0 / 0.12);
   --color-track: oklch(100% 0 0 / 0.1);
 
@@ -26,13 +28,6 @@
   --color-warn-bg: oklch(32% 0.07 75 / 0.85);
   --color-warn-ink: oklch(88% 0.12 85);
 
-  --color-player-a: oklch(80% 0.09 55);
-  --color-player-a-ink: oklch(26% 0.07 55);
-  --color-player-b: oklch(80% 0.09 180);
-  --color-player-b-ink: oklch(26% 0.07 180);
-  --color-player-c: oklch(80% 0.09 315);
-  --color-player-c-ink: oklch(26% 0.07 315);
-
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --animate-enter: enter 320ms var(--ease-out-expo) both;
@@ -44,9 +39,6 @@
   --animate-halo: halo 1.6s var(--ease-out-expo) both;
   --animate-orbit: spin 14s linear infinite;
   --animate-breathe: breathe 4s ease-in-out infinite;
-  --animate-drift-a: drift-a 34s ease-in-out infinite alternate;
-  --animate-drift-b: drift-b 41s ease-in-out infinite alternate;
-  --animate-drift-c: drift-c 47s ease-in-out infinite alternate;
 
   @keyframes enter {
     from { opacity: 0; transform: translateY(8px); }
@@ -82,25 +74,93 @@
     0%, 100% { transform: scale(0.9); opacity: 0.5; }
     50% { transform: scale(1.08); opacity: 1; }
   }
-  @keyframes drift-a {
-    from { transform: translate3d(0, 0, 0) scale(1); }
-    to { transform: translate3d(14vw, 10vh, 0) scale(1.15); }
-  }
-  @keyframes drift-b {
-    from { transform: translate3d(0, 0, 0) scale(1.1); }
-    to { transform: translate3d(-12vw, -8vh, 0) scale(0.95); }
-  }
-  @keyframes drift-c {
-    from { transform: translate3d(0, 0, 0); opacity: 0.6; }
-    to { transform: translate3d(8vw, -12vh, 0); opacity: 1; }
-  }
+}
+
+/* Aurora and avatar keyframes: transform and opacity only. */
+@keyframes aurora-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(14vw, 10vh, 0) scale(1.15); }
+}
+@keyframes aurora-b {
+  from { transform: translate3d(0, 0, 0) scale(1.1); }
+  to { transform: translate3d(-12vw, -8vh, 0) scale(0.95); }
+}
+@keyframes aurora-c {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(8vw, -12vh, 0); }
+}
+@keyframes avatar-breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.55; }
+  50% { transform: scale(1.06); opacity: 0.9; }
+}
+@keyframes avatar-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes avatar-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4%); }
+}
+@keyframes avatar-blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  97% { transform: scaleY(0.1); }
+}
+@keyframes avatar-flare {
+  from { opacity: 1; transform: scale(0.9); }
+  to { opacity: 0; transform: scale(1.5); }
+}
+@keyframes avatar-ring {
+  from { opacity: 0.9; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.6); }
 }
 
 @layer base {
+  :root {
+    --blob-a: oklch(55% 0.2 276 / 0.5);
+    --blob-b: oklch(52% 0.12 215 / 0.45);
+    --blob-c: oklch(55% 0.14 330 / 0.28);
+    --grain-opacity: 0.07;
+    --badge-hi: oklch(32% 0.03 265);
+    --badge-lo: oklch(15% 0.03 265);
+    --glass-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.08),
+      0 2px 6px oklch(0% 0 0 / 0.25),
+      0 30px 60px -24px oklch(0% 0 0 / 0.6);
+    color-scheme: dark;
+  }
+  /* Light: near-white page, white glass, dark text, pastel blobs. */
+  :root[data-theme="light"] {
+    --color-canvas: oklch(97.5% 0.008 265);
+    --color-glass: oklch(100% 0 0 / 0.72);
+    --color-glass-solid: oklch(100% 0 0);
+    --color-surface: oklch(30% 0.04 265 / 0.05);
+    --color-raised: oklch(30% 0.04 265 / 0.08);
+    --color-well: oklch(30% 0.04 265 / 0.035);
+    --color-ink: oklch(23% 0.03 265);
+    --color-muted: oklch(44% 0.03 265);
+    --color-line: oklch(30% 0.04 265 / 0.14);
+    --color-track: oklch(30% 0.04 265 / 0.1);
+    --color-accent-text: oklch(47% 0.2 276);
+    --color-accent-soft: oklch(55.5% 0.2 276 / 0.13);
+    --color-danger: oklch(50% 0.19 25);
+    --color-success: oklch(47% 0.12 160);
+    --color-warn-bg: oklch(95% 0.06 85 / 0.92);
+    --color-warn-ink: oklch(40% 0.09 65);
+
+    --blob-a: oklch(82% 0.1 276 / 0.7);
+    --blob-b: oklch(86% 0.08 200 / 0.7);
+    --blob-c: oklch(87% 0.08 345 / 0.6);
+    --grain-opacity: 0.05;
+    --badge-hi: oklch(100% 0 0);
+    --badge-lo: oklch(88% 0.02 265);
+    --glass-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.7),
+      0 1px 3px oklch(25% 0.04 265 / 0.08),
+      0 24px 50px -24px oklch(25% 0.04 265 / 0.25);
+    color-scheme: light;
+  }
   html {
     background: var(--color-canvas);
     color: var(--color-ink);
-    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -119,29 +179,40 @@
     box-shadow: 0 0 18px oklch(55.5% 0.2 276 / 0.55);
   }
   * {
-    scrollbar-color: oklch(100% 0 0 / 0.18) transparent;
+    scrollbar-color: var(--color-line) transparent;
     scrollbar-width: thin;
   }
 }
 
 @layer components {
-  /* Glow orbs: radial gradients are already soft, so no filter: blur layer is needed. Transform-only drift. */
-  .orb {
+  /* Aurora blobs: soft gradients, blurred once and then only translated, so the blur is not recomputed. */
+  .blob {
     position: absolute;
     border-radius: 9999px;
+    filter: blur(48px);
     will-change: transform;
   }
-  .orb-a {
+  .blob-a {
     width: 60vmax; height: 60vmax; left: -18vmax; top: -22vmax;
-    background: radial-gradient(closest-side, oklch(55% 0.2 276 / 0.55), transparent);
+    background: radial-gradient(closest-side, var(--blob-a), transparent);
+    animation: aurora-a 34s ease-in-out infinite alternate;
   }
-  .orb-b {
+  .blob-b {
     width: 52vmax; height: 52vmax; right: -16vmax; bottom: -20vmax;
-    background: radial-gradient(closest-side, oklch(50% 0.13 245 / 0.5), transparent);
+    background: radial-gradient(closest-side, var(--blob-b), transparent);
+    animation: aurora-b 41s ease-in-out infinite alternate;
   }
-  .orb-c {
-    width: 34vmax; height: 34vmax; right: 18vw; top: 8vh;
-    background: radial-gradient(closest-side, oklch(55% 0.1 30 / 0.22), transparent);
+  .blob-c {
+    width: 36vmax; height: 36vmax; right: 16vw; top: 6vh;
+    background: radial-gradient(closest-side, var(--blob-c), transparent);
+    animation: aurora-c 47s ease-in-out infinite alternate;
+  }
+  /* Static film grain from an inline SVG noise filter (a data URI: no network request). */
+  .grain {
+    position: absolute;
+    inset: 0;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   /* Frosted glass: the main panel and banners are the only blurred layers. */
@@ -150,10 +221,7 @@
     border: 1px solid var(--color-line);
     -webkit-backdrop-filter: blur(24px) saturate(140%);
     backdrop-filter: blur(24px) saturate(140%);
-    box-shadow:
-      inset 0 1px 0 oklch(100% 0 0 / 0.08),
-      0 2px 6px oklch(0% 0 0 / 0.25),
-      0 30px 60px -24px oklch(0% 0 0 / 0.6);
+    box-shadow: var(--glass-shadow);
   }
   .panel {
     border-radius: 1.75rem;
@@ -183,6 +251,89 @@
     background: conic-gradient(from 0deg, transparent 0deg, oklch(70% 0.16 276 / 0.1) 90deg, oklch(80% 0.12 276 / 0.9) 300deg, transparent 360deg);
     mask: radial-gradient(farthest-side, transparent calc(100% - 3px), black calc(100% - 2px));
   }
+
+  /*
+   * Avatar. One animation set and one timing for every animal and every player:
+   * breathing aura, orbiting sparks, a gentle bob, blinking eyes, and a flare + ring on delivery.
+   */
+  .avatar {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+  }
+  .avatar-badge {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle at 50% 28%,
+      color-mix(in oklab, var(--animal) 30%, var(--badge-hi)),
+      color-mix(in oklab, var(--animal) 22%, var(--badge-lo))
+    );
+    box-shadow:
+      inset 0 0 0 2px color-mix(in oklab, var(--animal) 85%, white),
+      0 4px 12px -4px oklch(0% 0 0 / 0.45);
+  }
+  .avatar-art {
+    width: 86%;
+    height: 86%;
+  }
+  .avatar-aura,
+  .avatar-flare {
+    position: absolute;
+    inset: -32%;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+  .avatar-aura {
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--animal) 50%, transparent), transparent);
+    animation: avatar-breathe 4s ease-in-out infinite;
+  }
+  .avatar-flare {
+    opacity: 0;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--animal) 85%, transparent), transparent);
+    animation: avatar-flare 900ms var(--ease-out-expo) both;
+  }
+  .avatar-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    border: 2px solid var(--animal);
+    opacity: 0;
+    pointer-events: none;
+    animation: avatar-ring 900ms ease-out both;
+  }
+  .avatar-orbit {
+    position: absolute;
+    inset: -18%;
+    pointer-events: none;
+    animation: avatar-spin 9s linear infinite;
+  }
+  .avatar-spark-arm {
+    position: absolute;
+    inset: 0;
+  }
+  .avatar-spark {
+    position: absolute;
+    top: 0;
+    left: 41%;
+    width: 18%;
+    height: 18%;
+    opacity: 0.9;
+  }
+  .avatar-bob {
+    animation: avatar-bob 6s ease-in-out infinite;
+  }
+  .avatar .eye {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: avatar-blink 5s ease-in-out infinite;
+  }
 }
 
 /* Solid fallback where backdrop-filter is unsupported or transparency should be reduced. */
@@ -195,7 +346,8 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .orb { display: none; }
+  .blob,
+  .grain { display: none; }
 }
 
 /* One switch for every CSS animation and transition; motion's MotionConfig handles its own. */
@@ -208,5 +360,15 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  /* Ambient loops stop outright; the art stays, static. The delivery flare and ring stay invisible. */
+  .blob,
+  .avatar-aura,
+  .avatar-orbit,
+  .avatar-bob,
+  .avatar .eye,
+  .avatar-flare,
+  .avatar-ring {
+    animation: none !important;
   }
 }

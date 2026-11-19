@@ -1,37 +1,55 @@
 import type { ReactNode } from "react";
 import { m } from "motion/react";
+import { Avatar } from "./avatars/Avatar";
 import Countdown from "./Countdown";
-import type { Phase, ServerState } from "./useSession";
+import type { ThemeChoice } from "./theme";
+import type { ChatMessage, Phase, ServerState } from "./useSession";
 
-// Colors come from the label letter only ("Player B" -> B). Labels are shuffled per session on the
-// server, so a color never maps to a participant type.
-const PLAYER_TINT: Record<string, string> = {
-  A: "bg-player-a text-player-a-ink",
-  B: "bg-player-b text-player-b-ink",
-  C: "bg-player-c text-player-c-ink",
-};
+export { Avatar };
 
-function letter(label: string): string {
-  return label.trim().slice(-1).toUpperCase();
+/** All three players. Each avatar pulses when that player's message is delivered, the same way for everyone. */
+export function PlayerStrip({ players, you, messages }: { players: string[]; you: string | null; messages: ChatMessage[] }) {
+  const lastId: Record<string, number> = {};
+  for (const msg of messages) lastId[msg.from] = msg.id;
+  return (
+    <ul aria-label="Players" className="flex justify-center gap-6 sm:gap-10">
+      {players.map((label) => (
+        <li key={label} className="flex flex-col items-center gap-2">
+          <Avatar label={label} size="md" pulseKey={lastId[label] ?? 0} />
+          <span className="text-xs font-medium text-muted">
+            {label}
+            {label === you && <span className="text-ink"> (You)</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
-const AVATAR_SIZE = {
-  xs: "h-5 w-5 text-[0.625rem]",
-  sm: "h-7 w-7 text-xs",
-  md: "h-12 w-12 text-lg",
-  xl: "h-24 w-24 text-4xl",
-};
+const THEMES: { value: ThemeChoice; label: string }[] = [
+  { value: "dark", label: "Dark" },
+  { value: "light", label: "Light" },
+  { value: "auto", label: "Auto" },
+];
 
-export function Avatar({ label, size = "sm" }: { label: string; size?: keyof typeof AVATAR_SIZE }) {
+/** Local display preference only; nothing here talks to the server. */
+export function ThemeSwitch({ choice, onChange }: { choice: ThemeChoice; onChange: (c: ThemeChoice) => void }) {
   return (
-    <span
-      aria-hidden
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-semibold ${AVATAR_SIZE[size]} ${
-        PLAYER_TINT[letter(label)] ?? "bg-track text-muted"
-      }`}
-    >
-      {letter(label)}
-    </span>
+    <div role="group" aria-label="Theme" className="glass inline-flex gap-1 rounded-full p-1">
+      {THEMES.map((t) => (
+        <button
+          key={t.value}
+          type="button"
+          aria-pressed={choice === t.value}
+          onClick={() => onChange(t.value)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-200 ${
+            choice === t.value ? "bg-accent text-white" : "text-muted hover:text-ink"
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   );
 }
 

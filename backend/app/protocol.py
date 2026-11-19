@@ -38,6 +38,8 @@ def state(session: "LiveSession", seat: "Seat", server_now: int | None = None) -
         "you": seat.label if started else None,
         "players": sorted(s.label for s in session.seats) if started else [],
         "has_voted": session.has_voted(seat.label),  # own ballot only, never anyone else's
+        # Random per session and identical for every seat; seeds the client's avatar deal.
+        "avatar_seed": session.avatar_seed if started else None,
     }
 
 

@@ -491,8 +491,82 @@ Follow CLAUDE.md and PLAN.md. Implement ONLY slice 9: README, AI log and final c
 Before coding, state your assumptions and any ambiguity.
 Mark slices 8 and 9 as Done in the PLAN.md progress tracker.
 Write README.md (concise but complete). Only state things that are true in the code; do not invent numbers, results or claims. Sections: what it is; the blind condition in one paragraph; quick start (`docker compose up --build`, URL, optional .env keys, the APP_PORT option); how to switch conditions in config.yml (table of the three conditions, restart needed); how to switch AI providers (anthropic | gemini | scripted, keys, scripted fallback with WARNING in the logs, models are config settings because names retire); architecture overview (a short diagram or list: FastAPI, WebSockets, protocol.py as the single payload builder, engine, lobby, agents, PostgreSQL, one container serving the built React app); the experiment flow and design decisions from CLAUDE.md (Round 2 decides, tie-break, anonymous Round 1 tally, abstentions, disconnect handling and the 10 s seat grace period); the blind-condition measures (each leak and its defence); testing (how to run pytest); AI tooling and process (Claude Code in VS Code with the model from CLAUDE.md, the claude-api skill, my own blind-condition-check skill, Impeccable for the UI pass installed locally with telemetry off, the Gemini provider, how prompts are logged by the hook, and that the planning chat is logged in ai_logs); UI notes (motion is the only library, loaded via LazyMotion; accessibility and reduced-motion/reduced-transparency fallbacks; the trade-off that a premium look could confound a real study, so a neutral theme would be preferable for actual research); known limitations (in-memory sessions lost on restart, no auth, no migrations, empty waiting sessions left in the DB, a tab that joins but never opens a socket keeps its seat, the 10 s grace is a constant, scripted agent is less convincing); and time spent as the text TODO-TIME (I will fill in the real number).
-Check ai_logs/prompts.md: remove stray <\pasted_content ...> tags and replace "Model: UNKNOWN - fill in" with claude-opus-5-5. Do not rewrite, reorder, summarize or remove any prompt text beyond that. Do not add invented prompts.
+Check ai_logs/prompts.md: remove stray <\pasted_content ...> tags and replace "Model: claude-opus-5-5 - fill in" with claude-opus-5-5. Do not rewrite, reorder, summarize or remove any prompt text beyond that. Do not add invented prompts.
 Check the repo for secrets (.env must not be tracked, .env.example has empty values) and that .gitignore covers .env, node_modules, and the local Impeccable files.
 Run a fresh-clone check: clone the repo into a new empty temporary folder outside this project, run `docker compose up --build` there with no .env (on a free host port via APP_PORT if needed), confirm the app loads and /api/health works, start a session in each of the three conditions as far as you can without a browser (for example by joining over the API and WebSocket), confirm the scripted fallback works without an API key, then run pytest and tear everything down. Report exactly what you verified and what you could not.
 Do not change application code. Do not start other slices. Show me how to verify. Stop when done.
 ```
+
+## Prompt 20 - 2026-11-19 02:02
+- Tool: Claude Code (VS Code extension)
+- Model: claude-opus-5-5 - fill in
+
+```text
+<ide_opened_file>The user opened the file c:\Users\Abdul Jalil\Projects\human-ai-group-decision\frontend\src\avatars\animals.ts in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+
+<pasted_content id="01f8">
+Slice 10 (visuals). Do all of the following in order. Read CLAUDE.md, PRODUCT.md and PLAN.md first.
+
+STEP 0 - Setup
+- Run `git status`. If there are uncommitted changes, stop and tell me. Do not continue.
+- Run `git switch -c visuals`.
+- Confirm frontend/src/avatars/animals.ts exists (I added it). If it is missing, stop and tell me. Do not redraw the art.
+
+STEP 1 - Docs
+- In PRODUCT.md, replace any "Characters" or "Avatars" section with this section (keep the rest of the file):
+
+## Avatars and theme
+Each player label (A, B, C) gets an animal avatar from a pool of six (fox, wolf, owl, cat, penguin, parrot), each with a
+colored aura and orbiting sparks. The animal is dealt by a seeded shuffle of the session id (see
+frontend/src/avatars/animals.ts), so every browser shows the same animal for the same player.
+The deal depends only on the session id and the label list, never on participant type, presence, or join order.
+All animals share one animation set and one timing. A player's aura flares and a ring pulses when that player's
+message is delivered, identically for every sender. Never react to typing, presence, or participant type.
+No robots, no existing characters, no AI or assistant imagery. The UI keeps the labels "Player A/B/C".
+Visual direction: aurora-mesh background (three slow blurred color blobs plus fine film grain) behind frosted glass.
+Themes: Dark, Light, Auto (follows the device). The choice is local to the browser, defaults to Auto, is never sent to
+the server, logged, or stored with participant data. Text must meet WCAG AA in both themes.
+Design confound: a strong visual style could change how people chat. Random avatars spread the effect across seats and conditions. Note it in the README.
+
+- In PLAN.md add: "Slice 10: visuals (aurora background, six-animal avatars dealt by seeded shuffle, Dark/Light/Auto theme), frontend/src only, branch visuals" to the tracker, and mark it in progress.
+
+STEP 2 - Scope rules
+- Edit only frontend/src/** (plus PRODUCT.md and PLAN.md above). No backend, protocol.py, DB or config.yml changes.
+- No new dependencies. The existing `motion` library is allowed, but prefer pure CSS.
+- Do not add any field to the server payload. Avatars come from dealAnimals(sessionId, labels) in animals.ts.
+- Keep the UI labels "Player A/B/C" and "You". Never show animal names as player names.
+
+STEP 3 - Build
+1. Avatar component (props: label, size). Renders the badge (gradient disc, colored rim), the animal art from animals.ts
+   (static trusted strings, unique gradient ids per instance), a breathing aura, and three orbiting sparks from SPARK_PATHS.
+   Use the CSS class .eye to blink every 5s, a gentle bob on the badge, and a breathing aura.
+   Same animation code and timing for every animal.
+2. Message delivered event: the sender's aura flares and a ring pulses once, with the same timing for every sender.
+   Do not react to typing, presence, or participant type. No typing indicators.
+3. Show avatars next to every chat message, in a header strip of all three players, on the vote cards, and on the results screen.
+4. Aurora background: three blurred color blobs drifting slowly (animate transform only) plus an SVG-noise grain overlay.
+   Frosted-glass cards (backdrop-filter with a solid fallback). One shared component used on every screen.
+5. Theme: CSS variables with `data-theme` on the root. Dark, Light and Auto buttons (Auto follows prefers-color-scheme and updates live).
+   Persist the choice in localStorage inside try/catch. Never send it anywhere. Default is Auto.
+   Light palette: near-white page, white glass, dark text, pastel blobs.
+6. Accessibility: honor prefers-reduced-motion (stop blob drift, bobbing, orbit, blink and pulse; keep static art) and
+   prefers-reduced-transparency (solid cards). Decorative SVGs are aria-hidden; the avatar has an aria-label like
+   "Player B avatar". Text contrast must be WCAG AA in both themes; check it and fix failures.
+7. Performance: animate only transform and opacity. Keep it smooth with three avatars and the background.
+
+STEP 4 - Tests and checks
+- Add tests for dealAnimals: the same session id gives the same result; labels get distinct animals; different session ids give
+  varied results; the function takes no participant-type input. Use the repo's frontend test runner if there is one,
+  otherwise add a minimal vitest setup.
+- Run the blind-condition-check skill and report each of its 8 items.
+- Confirm in the built app that payloads are unchanged, there are no new network requests, and the theme never leaves the browser.
+- Run the frontend build and the existing backend tests. Both must pass.
+
+STEP 5 - Report (do not commit; I will review first)
+List files changed, what you verified, anything you skipped, and any README notes I must add
+(design confound, motion usage, accessibility fallbacks, theme stored locally).
+Time-box about 45 minutes.
+</pasted_content id="01f8">
+```
+

@@ -69,6 +69,20 @@ def test_no_payload_reveals_participant_type(name, payload):
     assert not values & BANNED_VALUES, name
 
 
+@pytest.mark.parametrize("phase", ["WAITING", "DISCUSSION", "VOTING", "ROUND_RESULT", "FINAL"])
+def test_no_payload_differs_by_participant_type(phase):
+    """Flip every seat's kind: each seat's state and replay must be byte-for-byte the same."""
+    session = make_session(phase)
+    session.chat = [ChatRecord(1, "Player C", "hi", 1), ChatRecord(2, "Player A", "hey", 2)]
+    before = [protocol.replay(session, seat, server_now=1_990_000) for seat in session.seats]
+    for seat in session.seats:
+        seat.kind = "ai" if seat.kind == "human" else "human"
+    after = [protocol.replay(session, seat, server_now=1_990_000) for seat in session.seats]
+    assert before == after
+    seeds = {p[0]["avatar_seed"] for p in before}
+    assert len(seeds) == 1  # the avatar seed is the same for every seat
+
+
 def test_ai_and_human_messages_have_identical_shape():
     sent: list[dict] = []
 

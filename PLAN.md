@@ -343,3 +343,4 @@ If time runs short, cut in this order: UI animations, extra blind defences beyon
 | 7 | Reconnect and disconnects | Done |
 | 8 | UI polish | Done |
 | 9 | README, AI log and final check | Done |
+| 10 | Slice 10: visuals (aurora background, six-animal avatars dealt by seeded shuffle, Dark/Light/Auto theme), frontend/src only, branch visuals | In progress |

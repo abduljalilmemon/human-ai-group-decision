@@ -1,7 +1,10 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m } from "motion/react";
+import Aurora from "./Aurora";
+import { AvatarDeal } from "./avatars/Avatar";
+import { useTheme } from "./theme";
 import { useSession, type ServerState } from "./useSession";
-import { Banner, ErrorLine, Spinner, Stepper } from "./ui";
+import { Banner, ErrorLine, Spinner, Stepper, ThemeSwitch } from "./ui";
 import Discussion from "./views/Discussion";
 import { FinalResults, RoundTally } from "./views/Results";
 import Voting from "./views/Voting";
@@ -16,16 +19,6 @@ const PHASE_ANNOUNCE: Record<ServerState["phase"], (round: number) => string> = 
   ROUND_RESULT: (r) => `Round ${r} results.`,
   FINAL: () => "Final results.",
 };
-
-function Backdrop() {
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="orb orb-a animate-drift-a" />
-      <div className="orb orb-b animate-drift-b" />
-      <div className="orb orb-c animate-drift-c" />
-    </div>
-  );
-}
 
 const STEPS_JOIN = ["Two short rounds of chat", "A secret vote after each round", "The final vote picks the Decision Maker"];
 
@@ -71,6 +64,7 @@ function Join({ onJoin, busy, error }: { onJoin: () => void; busy: boolean; erro
 
 export default function App() {
   const session = useSession();
+  const theme = useTheme();
   const { status, state } = session;
   const replaced = status === "replaced";
   const panel = useRef<HTMLElement>(null);
@@ -80,7 +74,7 @@ export default function App() {
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
-        <Backdrop />
+        <Aurora />
         <AnimatePresence>
           {status === "reconnecting" && state && (
             <Banner key="reconnecting" tone="warn">
@@ -118,10 +112,15 @@ export default function App() {
                   exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
-                  <Screen session={session} />
+                  <AvatarDeal seed={state?.avatar_seed ?? null} labels={state?.players ?? []}>
+                    <Screen session={session} />
+                  </AvatarDeal>
                 </m.div>
               </AnimatePresence>
             </main>
+            <div className="mt-6 flex justify-center">
+              <ThemeSwitch choice={theme.choice} onChange={theme.setChoice} />
+            </div>
           </div>
         </div>
       </MotionConfig>

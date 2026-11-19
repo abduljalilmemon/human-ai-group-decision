@@ -11,6 +11,7 @@ export interface ServerState {
   you: string | null;
   players: string[];
   has_voted: boolean;
+  avatar_seed: string | null; // random per session, same for every player; null in the waiting room
 }
 
 export interface ChatMessage {

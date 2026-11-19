@@ -32,11 +32,18 @@ class ChatRecord:
     sent_at: int  # epoch ms
 
 
+def new_avatar_seed() -> str:
+    """Opaque per-session seed for the client's avatar deal. Random only: never derived from the
+    DB id, seat order, join order or participant type."""
+    return secrets.token_hex(8)
+
+
 @dataclass
 class LiveSession:
     id: int
     labels: list[str]  # shuffled per session; humans take them in arrival order, AI the rest
     human_slots: int
+    avatar_seed: str = field(default_factory=new_avatar_seed)  # same value sent to every seat
     seats: list[Seat] = field(default_factory=list)
     phase: str = "WAITING"
     round: int = 0
@@ -177,6 +184,8 @@ class Lobby:
             row.started_at = func.now()
             seats = {s.label: s.kind for s in session.seats} | {r.label: "ai" for r in ai_rows}
             db.add(Event(session_id=session.id, type="session_started", payload={"seats": seats}))
+            # Logged at start, when clients first receive the seed, so empty waiting rooms log none.
+            db.add(Event(session_id=session.id, type="avatar_dealt", payload={"seed": session.avatar_seed}))
             await db.commit()
         session.seats += [Seat(label=r.label, kind="ai", participant_id=r.id) for r in ai_rows]
         await self._on_start(session)  # the engine takes over from WAITING

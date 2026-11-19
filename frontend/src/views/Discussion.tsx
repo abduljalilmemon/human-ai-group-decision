@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { m } from "motion/react";
 import { MAX_CHAT_CHARS, type ChatMessage, type ServerState } from "../useSession";
-import { Avatar, ErrorLine, PhaseHeader } from "../ui";
+import { Avatar, ErrorLine, PhaseHeader, PlayerStrip } from "../ui";
 
 const ERROR_TEXT: Record<string, string> = {
   chat_closed: "The discussion has ended.",
@@ -38,7 +38,7 @@ function Bubble({ message, mine, first }: { message: ChatMessage; mine: boolean;
       style={{ transformOrigin: mine ? "100% 100%" : "0% 100%" }}
       className={`flex items-end gap-2 ${mine ? "flex-row-reverse" : ""} ${first ? "mt-3 first:mt-0" : "mt-1"}`}
     >
-      {mine ? null : first ? <Avatar label={message.from} /> : <span className="w-7 shrink-0" aria-hidden />}
+      <Avatar label={message.from} />
       <div className={`flex max-w-[80%] flex-col ${mine ? "items-end" : "items-start"}`}>
         {first && <span className="mb-1 px-1 text-xs font-medium text-muted">{mine ? "You" : message.from}</span>}
         {!first && <span className="sr-only">{mine ? "You" : message.from}:</span>}
@@ -101,6 +101,9 @@ export default function Discussion({ state, messages, error, onSend }: Props) {
   return (
     <div className="flex flex-col">
       <PhaseHeader state={state} title={`Round ${state.round} discussion`} hint="Discuss who should be the Decision Maker." />
+      <div className="mt-5">
+        <PlayerStrip players={state.players} you={state.you} messages={messages} />
+      </div>
 
       <ol
         ref={log}
@@ -109,7 +112,7 @@ export default function Discussion({ state, messages, error, onSend }: Props) {
         aria-label="Chat messages"
         aria-live="polite"
         aria-relevant="additions"
-        className="-mx-6 mt-5 h-[min(24rem,calc(100dvh-24rem))] min-h-60 overflow-y-auto border-y border-line bg-[oklch(0%_0_0/0.14)] px-6 py-4 sm:-mx-8 sm:px-8"
+        className="-mx-6 mt-5 h-[min(22rem,calc(100dvh-30rem))] min-h-60 overflow-y-auto border-y border-line bg-well px-6 py-4 sm:-mx-8 sm:px-8"
       >
         {messages.length === 0 && <EmptyHint />}
         {messages.map((m, i) => (
